@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#define _USE_MATH_DEFINES
 
 #include "SpaceShip.h"
 
@@ -8,8 +8,11 @@
 #include "SFML/Window.hpp"
 
 using sf::RenderWindow;
+using sf::Window;
 using sf::Event;
 using sf::VideoMode;
+using sf::Mouse;
+using sf::Texture;
 
 using std::cout;
 using std::endl;
@@ -20,10 +23,10 @@ private:
 
 	//private variables
 	SpaceShip spaceShip;
-
 	RenderWindow* renderWindow;
 	VideoMode videoMode;
 	Event event;
+	Texture spriteTexture;
 
 	//private func
 	void initWindow();
@@ -33,6 +36,8 @@ public:
 	
 	//public variables
 	
+	//accessor
+
 	//public func
 	void update();
 	void render();

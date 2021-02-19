@@ -1,10 +1,14 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+
 #include "SFML/Graphics.hpp"
 
-using sf::VertexArray;
-using sf::Transform;
+#include <cmath>
+#include <iostream>
+
 using sf::Vector2f;
+using sf::Sprite;
 
 class SpaceShip
 {
@@ -12,32 +16,21 @@ private:
 
 	//private variables
 	float speed;
-	float rotationDegree;
 	int health;
-
-	Transform shipTransform;
-	VertexArray body;
 
 	//private func
 
 public:
 
 	//public variables
+	Sprite body;
 
 	//getters & setters
 	void setSpeed(float speed);
-	void setHealth(int health);
-	void setRotationDegree(float rotationDegree);
-
-	float getRotationDegree();
 	float getSpeed();
+	void setHealth(int health);
 	int getHealth();
-
-	VertexArray getBody();
-
 	//public func
-	void transformShip(Vector2f offset = Vector2f(0.f,0.f), float degree = 0);
-	void calculateRotationDegree(Vector2f mousePos);
 
 	//constr & destr
 	SpaceShip() = default;
