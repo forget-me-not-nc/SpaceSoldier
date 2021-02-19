@@ -46,7 +46,13 @@ void Game::validateSpeed()
 
 	if (this->distanceToMouse >= 10)
 	{
-		this->spaceShip.setSpeed(Vector2f(this->distanceToMouse * 0.00055f, this->distanceToMouse * 0.00055f));
+		this->spaceShip.setSpeed(Vector2f(static_cast<float>(this->distanceToMouse * 0.005f), static_cast<float>(this->distanceToMouse * 0.005f)));
+		
+		if (this->spaceShip.getSpeed().x >= this->maxSpeed || this->spaceShip.getSpeed().y >= this->maxSpeed)
+		{
+			this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x > 0 ? this->maxSpeed : -this->maxSpeed, this->spaceShip.getSpeed().y > 0 ? this->maxSpeed : -this->maxSpeed));
+		}
+
 		this->movingVector = this->mousePos - this->spaceShip.body.getPosition();
 
 		if (this->movingVector.x < 0)
@@ -66,6 +72,9 @@ void Game::validateSpeed()
 		{
 			if (this->spaceShip.getSpeed().y < 0) this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x, this->spaceShip.getSpeed().y * -1));
 		}
+
+		cout << "Current speed x: " << this->spaceShip.getSpeed().x << " y: " << this->spaceShip.getSpeed().y << endl;
+
 		this->spaceShip.body.move(this->spaceShip.getSpeed());
 	}
 }

@@ -33,6 +33,8 @@ private:
 
 	double distanceToMouse;
 
+	const float maxSpeed = 1.f;
+
 	//private func
 	void initWindow();
 	void handleEvents();
