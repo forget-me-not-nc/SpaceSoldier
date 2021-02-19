@@ -15,7 +15,7 @@ class SpaceShip
 private:
 
 	//private variables
-	float speed;
+	Vector2f speed;
 	int health;
 
 	//private func
@@ -26,8 +26,8 @@ public:
 	Sprite body;
 
 	//getters & setters
-	void setSpeed(float speed);
-	float getSpeed();
+	void setSpeed(Vector2f speed);
+	Vector2f getSpeed();
 	void setHealth(int health);
 	int getHealth();
 	//public func

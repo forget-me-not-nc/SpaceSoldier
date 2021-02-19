@@ -28,9 +28,15 @@ private:
 	Event event;
 	Texture spriteTexture;
 
+	Vector2f mousePos;
+	Vector2f movingVector;
+
+	double distanceToMouse;
+
 	//private func
 	void initWindow();
 	void handleEvents();
+	void validateSpeed();
 
 public:
 	
