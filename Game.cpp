@@ -4,17 +4,17 @@
 
 void Game::initWindow()
 {
-	this->videoMode = VideoMode(1000, 800);
+	this->videoMode = VideoMode(1700, 900);
 
 	this->renderWindow = new RenderWindow(this->videoMode, "Space Soldier", sf::Style::Titlebar | sf::Style::Close);
+
+	this->renderWindow->setFramerateLimit(144);
 }
 
 void Game::handleEvents()
 {
 	while (this->renderWindow->pollEvent(this->event))
 	{
-		this->mousePos = static_cast<Vector2f>(sf::Mouse::getPosition(*this->renderWindow));
-
 		switch (this->event.type)
 		{
 			case sf::Event::Closed:
@@ -25,58 +25,31 @@ void Game::handleEvents()
 
 				break;
 			}
-			case sf::Event::MouseMoved:
-			{
-				Vector2f difference = mousePos - this->spaceShip.body.getPosition();			
-
-				this->spaceShip.body.setRotation((atan2(difference.y, difference.x) * 180.f / 3.14159265f) + 90);
-
-				break;
-			}
-
 
 			default: break;
+		}
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+		{
+			this->spaceShip.body.move(1.f * cos(this->rotation * M_PI / 180), 1.f * sin(this->rotation * M_PI / 180));
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+		{
+			this->spaceShip.body.rotate(-5);
+			this->rotation -= 5;
+		}
+		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+		{
+			this->spaceShip.body.rotate(5);
+			this->rotation += 5;
+
 		}
 	}
 }
 
 void Game::validateSpeed()
 {
-	this->distanceToMouse = sqrt(pow(mousePos.x - this->spaceShip.body.getPosition().x, 2) + pow(mousePos.y - this->spaceShip.body.getPosition().y, 2));
-
-	if (this->distanceToMouse >= 10)
-	{
-		this->spaceShip.setSpeed(Vector2f(static_cast<float>(this->distanceToMouse * 0.005f), static_cast<float>(this->distanceToMouse * 0.005f)));
-		
-		if (this->spaceShip.getSpeed().x >= this->maxSpeed || this->spaceShip.getSpeed().y >= this->maxSpeed)
-		{
-			this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x > 0 ? this->maxSpeed : -this->maxSpeed, this->spaceShip.getSpeed().y > 0 ? this->maxSpeed : -this->maxSpeed));
-		}
-
-		this->movingVector = this->mousePos - this->spaceShip.body.getPosition();
-
-		if (this->movingVector.x < 0)
-		{
-			if(this->spaceShip.getSpeed().x > 0) this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x * -1, this->spaceShip.getSpeed().y));
-		}
-		else if(this->movingVector.x > 0)
-		{
-			if (this->spaceShip.getSpeed().x < 0) this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x * -1, this->spaceShip.getSpeed().y));
-		}
-
-		if (this->movingVector.y < 0)
-		{
-			if (this->spaceShip.getSpeed().y > 0) this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x, this->spaceShip.getSpeed().y * -1));
-		}
-		else if(this->movingVector.y > 0)
-		{
-			if (this->spaceShip.getSpeed().y < 0) this->spaceShip.setSpeed(Vector2f(this->spaceShip.getSpeed().x, this->spaceShip.getSpeed().y * -1));
-		}
-
-		cout << "Current speed x: " << this->spaceShip.getSpeed().x << " y: " << this->spaceShip.getSpeed().y << endl;
-
-		this->spaceShip.body.move(this->spaceShip.getSpeed());
-	}
+	
 }
 
 //public func
@@ -90,7 +63,7 @@ void Game::render()
 {
 	this->renderWindow->clear(sf::Color::Black);
 
-	this->validateSpeed();
+	//this->validateSpeed();
 
 	//redraw
 	this->renderWindow->draw(this->spaceShip.body);
@@ -120,9 +93,7 @@ Game::Game()
 
 	this->spaceShip.body.setTexture(this->spriteTexture);
 	this->spaceShip.body.setOrigin(Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2), static_cast<float>(this->spriteTexture.getSize().y / 2)));
-
-	this->distanceToMouse = 0;
-	this->mousePos = Vector2f(0.f, 0.f);
+	this->spaceShip.body.setRotation(90);
 }
 
 Game::~Game()

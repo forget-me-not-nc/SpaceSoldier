@@ -28,12 +28,8 @@ private:
 	Event event;
 	Texture spriteTexture;
 
-	Vector2f mousePos;
-	Vector2f movingVector;
-
-	double distanceToMouse;
-
-	const float maxSpeed = 1.f;
+	int rotation = 0;
+	const float maxSpeed = 4.0f;
 
 	//private func
 	void initWindow();
