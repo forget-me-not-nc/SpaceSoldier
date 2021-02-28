@@ -29,7 +29,8 @@ private:
 	Texture spriteTexture;
 
 	int rotation = 0;
-	const float maxSpeed = 4.0f;
+	const float maxSpeed = 8.f;
+	const float acceleration = 0.5f;
 
 	//private func
 	void initWindow();

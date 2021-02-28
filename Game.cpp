@@ -31,18 +31,32 @@ void Game::handleEvents()
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 		{
-			this->spaceShip.body.move(1.f * cos(this->rotation * M_PI / 180), 1.f * sin(this->rotation * M_PI / 180));
+			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
+									  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
+
+			cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
 		{
 			this->spaceShip.body.rotate(-5);
 			this->rotation -= 5;
+			this->rotation = this->rotation % 360;
+
+			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation / 1.3 * M_PI / 180)),
+									  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation / 1.3 * M_PI / 180)));
+
+			cout << "Current rotation: " << this->rotation << endl;
 		}
-		else if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
 		{
 			this->spaceShip.body.rotate(5);
 			this->rotation += 5;
+			this->rotation = this->rotation % 360;
 
+			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation / 1.3 * M_PI / 180)),
+									  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation / 1.3 * M_PI / 180)));
+
+			cout << "Current rotation: " << this->rotation << endl;
 		}
 	}
 }

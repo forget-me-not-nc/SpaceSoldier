@@ -30,7 +30,7 @@ int SpaceShip::getHealth()
 
 SpaceShip::SpaceShip(const int windowWidth, const int windowHeight) //ww
 {
-	this->speed = Vector2f(0.f, 0.f);
+	this->speed = Vector2f(5.f, 5.f);
 	this->health = 100;
 
 	this->body.setPosition(static_cast<float>(windowWidth / 2), static_cast<float>(windowHeight / 2));
