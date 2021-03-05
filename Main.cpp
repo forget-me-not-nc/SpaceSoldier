@@ -1,5 +1,4 @@
 #include <ctime>
-
 #include "Game.h"
 
 int main()
@@ -22,3 +21,4 @@ int main()
 	//end program
 	return 0;
 }
+

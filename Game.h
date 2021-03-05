@@ -2,6 +2,11 @@
 
 #define _USE_MATH_DEFINES
 
+#include <queue>
+#include <mutex>
+#include <future>
+#include <thread>
+
 #include "SpaceShip.h"
 
 #include "SFML/System.hpp"
@@ -17,16 +22,18 @@ using sf::Texture;
 using std::cout;
 using std::endl;
 
+
+
 class Game
 {
 private:
 
 	//private variables
 	SpaceShip spaceShip;
-	RenderWindow* renderWindow;
 	VideoMode videoMode;
 	Event event;
 	Texture spriteTexture;
+	RenderWindow* renderWindow;
 
 	int rotation = 0;
 	const float maxSpeed = 8.f;
@@ -40,8 +47,8 @@ private:
 public:
 	
 	//public variables
-	
-	//accessor
+
+	//accessorss
 
 	//public func
 	void update();
@@ -52,4 +59,3 @@ public:
 	Game();
 	~Game();
 };
-

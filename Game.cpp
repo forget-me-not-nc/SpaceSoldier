@@ -13,7 +13,7 @@ void Game::initWindow()
 
 void Game::handleEvents()
 {
-	while (this->renderWindow->pollEvent(this->event))
+	if(this->renderWindow->pollEvent(this->event))
 	{
 		switch (this->event.type)
 		{
@@ -26,15 +26,20 @@ void Game::handleEvents()
 				break;
 			}
 
+			case sf::Event::MouseMoved:
+			{
+				break;
+			}
+
 			default: break;
 		}
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 		{
 			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
-									  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
+				static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
 
-			cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
+			//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
 		{
@@ -42,10 +47,7 @@ void Game::handleEvents()
 			this->rotation -= 5;
 			this->rotation = this->rotation % 360;
 
-			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation / 1.3 * M_PI / 180)),
-									  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation / 1.3 * M_PI / 180)));
-
-			cout << "Current rotation: " << this->rotation << endl;
+			//cout << "Current rotation: " << this->rotation << endl;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
 		{
@@ -53,10 +55,7 @@ void Game::handleEvents()
 			this->rotation += 5;
 			this->rotation = this->rotation % 360;
 
-			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation / 1.3 * M_PI / 180)),
-									  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation / 1.3 * M_PI / 180)));
-
-			cout << "Current rotation: " << this->rotation << endl;
+			//cout << "Current rotation: " << this->rotation << endl;
 		}
 	}
 }
@@ -76,8 +75,6 @@ void Game::update()
 void Game::render()
 {
 	this->renderWindow->clear(sf::Color::Black);
-
-	//this->validateSpeed();
 
 	//redraw
 	this->renderWindow->draw(this->spaceShip.body);
@@ -114,3 +111,4 @@ Game::~Game()
 {
 	delete this->renderWindow;
 }
+
