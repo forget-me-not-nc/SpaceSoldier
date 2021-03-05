@@ -4,7 +4,7 @@
 
 Bullet::Bullet(Vector2f startPos, float rotation)
 {
-	this->bullet = CircleShape(3.f);
+	this->bullet = CircleShape(4.f);
 	this->bullet.setPosition(startPos);
 	this->bullet.setFillColor(sf::Color::Red);
 	this->bullet.setOrigin(this->bullet.getRadius(), this->bullet.getRadius());

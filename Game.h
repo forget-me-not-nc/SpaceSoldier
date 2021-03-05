@@ -31,6 +31,8 @@ private:
 	Event event;
 	Texture spriteTexture;
 	RenderWindow* renderWindow;
+	Texture backgroundTexture;
+	Sprite background;
 
 	int rotation = 0;
 	const float maxSpeed = 8.f;
@@ -41,6 +43,9 @@ private:
 
 	//Asteroids vector
 	vector<Asteroid> asteroids;
+
+	//asteroid textures vector
+	vector<Texture> textures;
 
 	//private func
 	void initWindow();

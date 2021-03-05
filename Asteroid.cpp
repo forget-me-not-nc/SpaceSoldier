@@ -4,14 +4,6 @@
 
 Asteroid::Asteroid(sf::RenderWindow* window)
 {
-	if (!this->texture.loadFromFile("..\\Images\\Ship\\SpaceShip.png"))
-	{
-		std::cout << "Failed to load asteroid texture" << std::endl;
-	}
-
-	this->meteorite.setTexture(this->texture);
-	this->meteorite.setOrigin(static_cast<float>(this->texture.getSize().x / 2), static_cast<float>(this->texture.getSize().y / 2));
-
 	float offsetX = static_cast<float>((rand() % 10 + 1) * 0.5f);
 	float offsetY = static_cast<float>((rand() % 10 + 1) * 0.5f);
 

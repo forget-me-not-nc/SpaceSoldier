@@ -199,13 +199,18 @@ void Game::update()
 
 	if (rand() % 101 == 50 && this->asteroids.size() <= 6)
 	{
-		this->asteroids.push_back(Asteroid(this->renderWindow));
+		Asteroid tempAsteroid = Asteroid(this->renderWindow);
+
+		tempAsteroid.meteorite.setTexture(this->textures[rand() % this->textures.size()]);
+
+		this->asteroids.push_back(tempAsteroid);
 	}
 }
 
 void Game::render()
 {
 	this->renderWindow->clear(sf::Color::Black);
+	this->renderWindow->draw(this->background);
 
 	//redraw ship
 	this->renderWindow->draw(this->spaceShip.body);
@@ -237,7 +242,7 @@ Game::Game()
 
 	if (!this->spriteTexture.loadFromFile("..\\Images\\Ship\\SpaceShip.png"))
 	{
-		std::cout << "Failed Load Texture\n";
+		std::cout << "Failed to load Texture\n";
 
 		this->renderWindow->close();
 	}
@@ -246,6 +251,35 @@ Game::Game()
 	this->spaceShip.body.setOrigin(Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2), static_cast<float>(this->spriteTexture.getSize().y / 2)));
 	this->spaceShip.body.setRotation(90);
 
+	if (!this->backgroundTexture.loadFromFile("..\\Images\\Background\\Background.jpg"))
+	{
+		std::cout << "Failed to load background texture";
+	}
+
+	this->background.setTexture(this->backgroundTexture);
+
+	Texture tempTexture;
+
+	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid1.png"))
+	{
+		std::cout << "Failed to load asteroid_1 texture";
+	}
+
+	this->textures.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid2.png"))
+	{
+		std::cout << "Failed to load asteroid_1 texture";
+	}
+
+	this->textures.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid3.png"))
+	{
+		std::cout << "Failed to load asteroid_1 texture";
+	}
+
+	this->textures.push_back(Texture(tempTexture));
 }
 
 Game::~Game()
