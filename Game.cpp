@@ -57,6 +57,30 @@ void Game::handleEvents()
 
 			//cout << "Current rotation: " << this->rotation << endl;
 		}
+
+		this->validatePosition();
+	}
+}
+
+void Game::validatePosition()
+{
+	if (this->spaceShip.body.getPosition().x <= (0 - this->spaceShip.body.getOrigin().x / 2))
+	{
+		this->spaceShip.body.setPosition(static_cast<float>(this->renderWindow->getSize().x), 
+									     static_cast<float>(this->renderWindow->getSize().y - this->spaceShip.body.getPosition().y));
+	}
+	if (this->spaceShip.body.getPosition().x >= (this->renderWindow->getSize().x + this->spaceShip.body.getOrigin().x / 2))
+	{
+		this->spaceShip.body.setPosition(0, static_cast<float>(this->renderWindow->getSize().y - this->spaceShip.body.getPosition().y));
+	}
+	if (this->spaceShip.body.getPosition().y <= (0 - this->spaceShip.body.getOrigin().y / 2))
+	{
+		this->spaceShip.body.setPosition(static_cast<float>(this->renderWindow->getSize().x - this->spaceShip.body.getPosition().x),
+										 static_cast<float>(this->renderWindow->getSize().y));
+	}
+	if (this->spaceShip.body.getPosition().y >= (this->renderWindow->getSize().y + this->spaceShip.body.getOrigin().y / 2))
+	{
+		this->spaceShip.body.setPosition(static_cast<float>(this->renderWindow->getSize().x - this->spaceShip.body.getPosition().x), 0);
 	}
 }
 

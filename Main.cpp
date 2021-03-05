@@ -14,6 +14,8 @@ int main()
 	while (game.isRunning())
 	{
 		game.update();
+	
+		std::this_thread::sleep_for(std::chrono::microseconds(1));
 
 		game.render();
 	}

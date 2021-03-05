@@ -43,6 +43,7 @@ private:
 	void initWindow();
 	void handleEvents();
 	void validateSpeed();
+	void validatePosition();
 
 public:
 	
