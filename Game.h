@@ -2,12 +2,10 @@
 
 #define _USE_MATH_DEFINES
 
-#include <queue>
-#include <mutex>
-#include <future>
-#include <thread>
+#include <vector>
 
 #include "SpaceShip.h"
+#include "Bullet.h"
 
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
@@ -21,8 +19,7 @@ using sf::Texture;
 
 using std::cout;
 using std::endl;
-
-
+using std::vector;
 
 class Game
 {
@@ -39,11 +36,18 @@ private:
 	const float maxSpeed = 8.f;
 	const float acceleration = 0.5f;
 
+	//bullets vector
+	vector<Bullet> bullets;
+
 	//private func
 	void initWindow();
 	void handleEvents();
 	void validateSpeed();
 	void validatePosition();
+
+	void moveBullets();
+	void drawBullets();
+	void deleteBullets();
 
 public:
 	

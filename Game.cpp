@@ -26,8 +26,22 @@ void Game::handleEvents()
 				break;
 			}
 
-			case sf::Event::MouseMoved:
+			case sf::Event::MouseButtonPressed:
 			{
+				Bullet leftBullet(Vector2f(this->spaceShip.body.getPosition() - this->spaceShip.body.getOrigin()), static_cast<float>(this->rotation));
+
+				leftBullet.bullet.move(static_cast<float>(leftBullet.speed.x * cos(leftBullet.angle * M_PI / 180)),
+									   static_cast<float>(leftBullet.speed.y * sin(leftBullet.angle * M_PI / 180)));
+
+				this->bullets.push_back(leftBullet);
+
+				Bullet rightBullet(Vector2f(this->spaceShip.body.getPosition() + this->spaceShip.body.getOrigin()), static_cast<float>(this->rotation));
+
+				rightBullet.bullet.move(static_cast<float>(rightBullet.speed.x * cos(rightBullet.angle * M_PI / 180)),
+									   static_cast<float>(rightBullet.speed.y * sin(rightBullet.angle * M_PI / 180)));
+
+				this->bullets.push_back(rightBullet);
+
 				break;
 			}
 
@@ -84,6 +98,52 @@ void Game::validatePosition()
 	}
 }
 
+void Game::moveBullets()
+{
+	if (!this->bullets.empty())
+	{
+		for (unsigned int iter = 0; iter < this->bullets.size(); iter++)
+		{
+			this->bullets[iter].bullet.move(static_cast<float>(this->bullets[iter].speed.x * cos(this->bullets[iter].angle * M_PI / 180)),
+				static_cast<float>(this->bullets[iter].speed.y * sin(this->bullets[iter].angle * M_PI / 180)));
+		}
+	}
+	
+}
+
+void Game::drawBullets()
+{
+	if (!this->bullets.empty())
+	{
+		for(Bullet object : this->bullets)
+		{
+			this->renderWindow->draw(object.bullet);
+		}
+	}
+
+	this->deleteBullets();
+}
+
+void Game::deleteBullets()
+{
+	if (!this->bullets.empty())
+	{
+		for (unsigned int iter = 0; iter < this->bullets.size(); iter++)
+		{
+			if(this->bullets[iter].bullet.getPosition().x <= (0 - this->bullets[iter].bullet.getRadius()) || 
+				this->bullets[iter].bullet.getPosition().x >= (this->renderWindow->getSize().x + this->bullets[iter].bullet.getRadius()))
+			{
+				this->bullets.erase(this->bullets.begin() + iter);
+			}
+			else if (this->bullets[iter].bullet.getPosition().y <= (0 - this->bullets[iter].bullet.getRadius()) ||
+				this->bullets[iter].bullet.getPosition().y >= (this->renderWindow->getSize().y + this->bullets[iter].bullet.getRadius()))
+			{
+				this->bullets.erase(this->bullets.begin() + iter);
+			}
+		}
+	}
+}
+
 void Game::validateSpeed()
 {
 	
@@ -102,6 +162,12 @@ void Game::render()
 
 	//redraw
 	this->renderWindow->draw(this->spaceShip.body);
+
+	//move bullets
+	this->moveBullets();
+
+	//draw bullets
+	this->drawBullets();
 
 	this->renderWindow->display();
 }
