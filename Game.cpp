@@ -57,16 +57,16 @@ void Game::handleEvents()
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
 		{
-			this->spaceShip.body.rotate(-5);
-			this->rotation -= 5;
+			this->spaceShip.body.rotate(-3);
+			this->rotation -= 3;
 			this->rotation = this->rotation % 360;
 
 			//cout << "Current rotation: " << this->rotation << endl;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
 		{
-			this->spaceShip.body.rotate(5);
-			this->rotation += 5;
+			this->spaceShip.body.rotate(3);
+			this->rotation += 3;
 			this->rotation = this->rotation % 360;
 
 			//cout << "Current rotation: " << this->rotation << endl;
@@ -98,6 +98,13 @@ void Game::validatePosition()
 	}
 }
 
+void Game::validateSpeed()
+{
+
+}
+
+//bulets logic
+
 void Game::moveBullets()
 {
 	if (!this->bullets.empty())
@@ -108,11 +115,12 @@ void Game::moveBullets()
 				static_cast<float>(this->bullets[iter].speed.y * sin(this->bullets[iter].angle * M_PI / 180)));
 		}
 	}
-	
 }
 
 void Game::drawBullets()
 {
+	this->deleteBullets();
+
 	if (!this->bullets.empty())
 	{
 		for(Bullet object : this->bullets)
@@ -120,8 +128,6 @@ void Game::drawBullets()
 			this->renderWindow->draw(object.bullet);
 		}
 	}
-
-	this->deleteBullets();
 }
 
 void Game::deleteBullets()
@@ -130,13 +136,11 @@ void Game::deleteBullets()
 	{
 		for (unsigned int iter = 0; iter < this->bullets.size(); iter++)
 		{
-			if(this->bullets[iter].bullet.getPosition().x <= (0 - this->bullets[iter].bullet.getRadius()) || 
-				this->bullets[iter].bullet.getPosition().x >= (this->renderWindow->getSize().x + this->bullets[iter].bullet.getRadius()))
+			if(this->bullets[iter].bullet.getPosition().x <= 0 || this->bullets[iter].bullet.getPosition().x >= this->renderWindow->getSize().x)
 			{
 				this->bullets.erase(this->bullets.begin() + iter);
 			}
-			else if (this->bullets[iter].bullet.getPosition().y <= (0 - this->bullets[iter].bullet.getRadius()) ||
-				this->bullets[iter].bullet.getPosition().y >= (this->renderWindow->getSize().y + this->bullets[iter].bullet.getRadius()))
+			else if (this->bullets[iter].bullet.getPosition().y <= 0 || this->bullets[iter].bullet.getPosition().y >= this->renderWindow->getSize().y)
 			{
 				this->bullets.erase(this->bullets.begin() + iter);
 			}
@@ -144,31 +148,77 @@ void Game::deleteBullets()
 	}
 }
 
-void Game::validateSpeed()
+//asteroid logic
+
+void Game::moveAsteroids()
 {
-	
+	if (!this->asteroids.empty())
+	{
+		for (unsigned int iter = 0; iter < this->asteroids.size(); iter++)
+		{
+			this->asteroids[iter].meteorite.move(this->asteroids[iter].speed);
+		}
+	}
 }
 
+void Game::drawAsteroids()
+{
+	this->deleteAsteroids();
+
+	if (!this->asteroids.empty())
+	{
+		for (Asteroid object : this->asteroids)
+		{
+			this->renderWindow->draw(object.meteorite);
+		}
+	}
+}
+
+void Game::deleteAsteroids()
+{
+	if (!this->asteroids.empty())
+	{
+		for (unsigned int iter = 0; iter < this->asteroids.size(); iter++)
+		{
+			if (this->asteroids[iter].meteorite.getPosition().x < 0 || this->asteroids[iter].meteorite.getPosition().x > this->renderWindow->getSize().x)
+			{
+				this->asteroids.erase(this->asteroids.begin() + iter);
+			}
+			else if (this->asteroids[iter].meteorite.getPosition().y < 0 || this->asteroids[iter].meteorite.getPosition().y > this->renderWindow->getSize().y)
+			{
+				this->asteroids.erase(this->asteroids.begin() + iter);
+			}
+		}
+	}
+}
 //public func
 
 void Game::update()
 {
 	this->handleEvents();
+
+	if (rand() % 101 == 50 && this->asteroids.size() <= 6)
+	{
+		this->asteroids.push_back(Asteroid(this->renderWindow));
+	}
 }
 
 void Game::render()
 {
 	this->renderWindow->clear(sf::Color::Black);
 
-	//redraw
+	//redraw ship
 	this->renderWindow->draw(this->spaceShip.body);
 
-	//move bullets
+	//bullets logic
 	this->moveBullets();
-
-	//draw bullets
 	this->drawBullets();
 
+	//asteroid logic
+	this->moveAsteroids();
+	this->drawAsteroids();
+
+	//display all objects
 	this->renderWindow->display();
 }
 
@@ -185,7 +235,7 @@ Game::Game()
 
 	this->spaceShip = SpaceShip(this->videoMode.width, this->videoMode.height);
 
-	if (!this->spriteTexture.loadFromFile("..\\SpaceShip.png"))
+	if (!this->spriteTexture.loadFromFile("..\\Images\\Ship\\SpaceShip.png"))
 	{
 		std::cout << "Failed Load Texture\n";
 
@@ -195,6 +245,7 @@ Game::Game()
 	this->spaceShip.body.setTexture(this->spriteTexture);
 	this->spaceShip.body.setOrigin(Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2), static_cast<float>(this->spriteTexture.getSize().y / 2)));
 	this->spaceShip.body.setRotation(90);
+
 }
 
 Game::~Game()

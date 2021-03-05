@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "SpaceShip.h"
+#include "Asteroid.h"
 #include "Bullet.h"
 
 #include "SFML/System.hpp"
@@ -19,7 +20,6 @@ using sf::Texture;
 
 using std::cout;
 using std::endl;
-using std::vector;
 
 class Game
 {
@@ -39,6 +39,9 @@ private:
 	//bullets vector
 	vector<Bullet> bullets;
 
+	//Asteroids vector
+	vector<Asteroid> asteroids;
+
 	//private func
 	void initWindow();
 	void handleEvents();
@@ -48,6 +51,10 @@ private:
 	void moveBullets();
 	void drawBullets();
 	void deleteBullets();
+
+	void moveAsteroids();
+	void drawAsteroids();
+	void deleteAsteroids();
 
 public:
 	
