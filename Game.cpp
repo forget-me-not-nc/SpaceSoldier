@@ -28,19 +28,12 @@ void Game::handleEvents()
 
 			case sf::Event::MouseButtonPressed:
 			{
-				Bullet leftBullet(Vector2f(this->spaceShip.body.getPosition() - this->spaceShip.body.getOrigin()), static_cast<float>(this->rotation));
+				Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
 
-				leftBullet.bullet.move(static_cast<float>(leftBullet.speed.x * cos(leftBullet.angle * M_PI / 180)),
-									   static_cast<float>(leftBullet.speed.y * sin(leftBullet.angle * M_PI / 180)));
+				bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
+									   static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
 
-				this->bullets.push_back(leftBullet);
-
-				Bullet rightBullet(Vector2f(this->spaceShip.body.getPosition() + this->spaceShip.body.getOrigin()), static_cast<float>(this->rotation));
-
-				rightBullet.bullet.move(static_cast<float>(rightBullet.speed.x * cos(rightBullet.angle * M_PI / 180)),
-									   static_cast<float>(rightBullet.speed.y * sin(rightBullet.angle * M_PI / 180)));
-
-				this->bullets.push_back(rightBullet);
+				this->bullets.push_back(bullet);
 
 				break;
 			}
@@ -136,7 +129,8 @@ void Game::deleteBullets()
 	{
 		for (unsigned int iter = 0; iter < this->bullets.size(); iter++)
 		{
-			if(this->bullets[iter].bullet.getPosition().x <= 0 || this->bullets[iter].bullet.getPosition().x >= this->renderWindow->getSize().x)
+			if(this->bullets[iter].bullet.getPosition().x <= 0 || this->bullets[iter].bullet.getPosition().x >= this->renderWindow->getSize().x ||
+			   this->bullets[iter].isDestoyed)
 			{
 				this->bullets.erase(this->bullets.begin() + iter);
 			}
@@ -172,6 +166,28 @@ void Game::drawAsteroids()
 			this->renderWindow->draw(object.meteorite);
 		}
 	}
+
+	this->drawDestroyedAsteroids();
+}
+
+void Game::drawDestroyedAsteroids()
+{
+	if (!this->destroyedAsteroids.empty())
+	{
+		for (unsigned int i = 0; i < this->destroyedAsteroids.size(); i++)
+		{
+			this->renderWindow->draw(this->destroyedAsteroids[i].meteorite);
+
+			if (this->destroyedAsteroids[i].meteorite.getTexture() == &this->explosions[0]) this->destroyedAsteroids[i].meteorite.setTexture(this->explosions[1]);
+			else if (this->destroyedAsteroids[i].meteorite.getTexture() == &this->explosions[1]) this->destroyedAsteroids[i].meteorite.setTexture(this->explosions[2]);
+			else if (this->destroyedAsteroids[i].meteorite.getTexture() == &this->explosions[2]) this->destroyedAsteroids[i].meteorite.setTexture(this->explosions[3]);
+			else if (this->destroyedAsteroids[i].meteorite.getTexture() == &this->explosions[3]) this->destroyedAsteroids[i].meteorite.setTexture(this->explosions[4]);
+			else if (this->destroyedAsteroids[i].meteorite.getTexture() == &this->explosions[4])
+			{
+				this->destroyedAsteroids.erase(this->destroyedAsteroids.begin() + i);
+			}
+		}
+	}
 }
 
 void Game::deleteAsteroids()
@@ -180,7 +196,8 @@ void Game::deleteAsteroids()
 	{
 		for (unsigned int iter = 0; iter < this->asteroids.size(); iter++)
 		{
-			if (this->asteroids[iter].meteorite.getPosition().x < 0 || this->asteroids[iter].meteorite.getPosition().x > this->renderWindow->getSize().x)
+			if (this->asteroids[iter].meteorite.getPosition().x < 0 || this->asteroids[iter].meteorite.getPosition().x > this->renderWindow->getSize().x ||
+				this->asteroids[iter].health <= 0)
 			{
 				this->asteroids.erase(this->asteroids.begin() + iter);
 			}
@@ -191,6 +208,152 @@ void Game::deleteAsteroids()
 		}
 	}
 }
+
+//collision
+
+void Game::collisionCheck()
+{
+	//ship part
+	if (!this->asteroids.empty())
+	{
+
+	}
+
+	bool asteroidIsDeleted = false;
+
+	//bullets part
+	if (!this->bullets.empty() && !this->asteroids.empty())
+	{
+		for (vector<Bullet>::iterator bIter = this->bullets.begin(); bIter != this->bullets.end(); )
+		{
+			for (vector<Asteroid>::iterator aIter = this->asteroids.begin(); aIter != this->asteroids.end();)
+			{
+				asteroidIsDeleted = false;
+
+				if (bulletAndSpriteIntersect(aIter->meteorite, bIter->bullet))
+				{
+					aIter->health -= bIter->damage;
+
+					//destroy asteroid if health <= 0
+					if (aIter->health <= 0)
+					{
+						aIter->meteorite.setTexture(this->explosions[0]);
+						this->destroyedAsteroids.push_back(*aIter);
+					}
+
+					//destory bullet
+					bIter->bullet.setRadius(15);
+					bIter->bullet.setTexture(&this->explosions[this->explosions.size() - 1]);
+					this->renderWindow->draw(bIter->bullet);
+					bIter->isDestoyed = true;
+				}
+
+				++aIter;
+			}
+
+			++bIter;
+		}
+	}
+}
+
+bool Game::bulletAndSpriteIntersect(const Sprite &asteroid, const CircleShape &bullet)
+{
+	float dX = asteroid.getPosition().x - bullet.getPosition().x;
+	float dY = asteroid.getPosition().y - bullet.getPosition().y;
+
+	float spriteRadius = static_cast<float>((asteroid.getTexture()->getSize().x + asteroid.getTexture()->getSize().y) / 4);
+
+	return sqrt(dX * dX + dY * dY) <= (spriteRadius + bullet.getRadius());
+}
+
+//load textures
+
+void Game::loadTextures()
+{
+	//ship texture
+	if (!this->spriteTexture.loadFromFile("..\\Images\\Ship\\SpaceShip.png"))
+	{
+		std::cout << "Failed to load Texture\n";
+
+		this->renderWindow->close();
+	}
+
+	//background image
+	if (!this->backgroundTexture.loadFromFile("..\\Images\\Background\\Background.jpg"))
+	{
+		std::cout << "Failed to load background texture";
+	}
+
+	//asteroids images
+	Texture tempTexture;
+
+	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid1.png"))
+	{
+		std::cout << "Failed to load asteroid_1 texture";
+	}
+
+	this->asteroidTextures.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid2.png"))
+	{
+		std::cout << "Failed to load asteroid_2 texture";
+	}
+
+	this->asteroidTextures.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid3.png"))
+	{
+		std::cout << "Failed to load asteroid_3 texture";
+	}
+
+	this->asteroidTextures.push_back(Texture(tempTexture));
+
+	//explosion images
+
+	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage0.png"))
+	{
+		std::cout << "Failed to load explosion 1 texture";
+	}
+
+	this->explosions.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage1.png"))
+	{
+		std::cout << "Failed to load explosion 1 texture";
+	}
+
+	this->explosions.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage2.png"))
+	{
+		std::cout << "Failed to load explosion 2 texture";
+	}
+
+	this->explosions.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage3.png"))
+	{
+		std::cout << "Failed to load explosion 3 texture";
+	}
+
+	this->explosions.push_back(Texture(tempTexture));
+
+	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage4.png"))
+	{
+		std::cout << "Failed to load explosion 4 texture";
+	}
+
+	this->explosions.push_back(Texture(tempTexture));
+
+	//bullets explosion will be last texture in vector
+	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\BulletsHit.png"))
+	{
+		std::cout << "Failed to load explosion bullets explosion texture";
+	}
+
+	this->explosions.push_back(Texture(tempTexture));
+}
+
 //public func
 
 void Game::update()
@@ -201,8 +364,9 @@ void Game::update()
 	{
 		Asteroid tempAsteroid = Asteroid(this->renderWindow);
 
-		tempAsteroid.meteorite.setTexture(this->textures[rand() % this->textures.size()]);
-
+		tempAsteroid.meteorite.setTexture(this->asteroidTextures[rand() % this->asteroidTextures.size()]);
+		tempAsteroid.meteorite.setOrigin(static_cast<float>(tempAsteroid.meteorite.getTexture()->getSize().x / 2),
+										 static_cast<float>(tempAsteroid.meteorite.getTexture()->getSize().y / 2));
 		this->asteroids.push_back(tempAsteroid);
 	}
 }
@@ -217,10 +381,13 @@ void Game::render()
 
 	//bullets logic
 	this->moveBullets();
-	this->drawBullets();
-
+	
 	//asteroid logic
 	this->moveAsteroids();
+
+	this->collisionCheck();
+
+	this->drawBullets();
 	this->drawAsteroids();
 
 	//display all objects
@@ -238,48 +405,15 @@ Game::Game()
 {
 	this->initWindow();
 
+	this->loadTextures();
+
 	this->spaceShip = SpaceShip(this->videoMode.width, this->videoMode.height);
-
-	if (!this->spriteTexture.loadFromFile("..\\Images\\Ship\\SpaceShip.png"))
-	{
-		std::cout << "Failed to load Texture\n";
-
-		this->renderWindow->close();
-	}
 
 	this->spaceShip.body.setTexture(this->spriteTexture);
 	this->spaceShip.body.setOrigin(Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2), static_cast<float>(this->spriteTexture.getSize().y / 2)));
 	this->spaceShip.body.setRotation(90);
 
-	if (!this->backgroundTexture.loadFromFile("..\\Images\\Background\\Background.jpg"))
-	{
-		std::cout << "Failed to load background texture";
-	}
-
 	this->background.setTexture(this->backgroundTexture);
-
-	Texture tempTexture;
-
-	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid1.png"))
-	{
-		std::cout << "Failed to load asteroid_1 texture";
-	}
-
-	this->textures.push_back(Texture(tempTexture));
-
-	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid2.png"))
-	{
-		std::cout << "Failed to load asteroid_1 texture";
-	}
-
-	this->textures.push_back(Texture(tempTexture));
-
-	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid3.png"))
-	{
-		std::cout << "Failed to load asteroid_1 texture";
-	}
-
-	this->textures.push_back(Texture(tempTexture));
 }
 
 Game::~Game()

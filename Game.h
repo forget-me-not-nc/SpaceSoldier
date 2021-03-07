@@ -44,8 +44,14 @@ private:
 	//Asteroids vector
 	vector<Asteroid> asteroids;
 
+	//destroyed asteroids vector
+	vector<Asteroid> destroyedAsteroids;
+
 	//asteroid textures vector
-	vector<Texture> textures;
+	vector<Texture> asteroidTextures;
+
+	//explosin textures
+	vector<Texture> explosions;
 
 	//private func
 	void initWindow();
@@ -59,7 +65,13 @@ private:
 
 	void moveAsteroids();
 	void drawAsteroids();
+	void drawDestroyedAsteroids();
 	void deleteAsteroids();
+
+	void collisionCheck();
+	bool bulletAndSpriteIntersect(const Sprite &asteroid, const CircleShape &bullet);
+
+	void loadTextures();
 
 public:
 	

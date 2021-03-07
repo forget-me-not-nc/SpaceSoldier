@@ -13,6 +13,7 @@ public:
 	Vector2f speed;
 	float angle;
 	int damage;
+	bool isDestoyed;
 
 	Bullet(Vector2f startPos, float rotation);
 	~Bullet();

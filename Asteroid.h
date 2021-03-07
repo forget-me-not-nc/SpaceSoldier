@@ -17,7 +17,8 @@ struct Asteroid
 public:
 	Sprite meteorite;
 	Vector2f speed;
-	int damage = 0;
+	int damage;
+	int health;
 
 	Asteroid(sf::RenderWindow* window);
 	~Asteroid();
