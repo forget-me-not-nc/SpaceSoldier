@@ -19,6 +19,7 @@ public:
 	Vector2f speed;
 	int damage;
 	int health;
+	int points;
 
 	Asteroid(sf::RenderWindow* window);
 	~Asteroid();

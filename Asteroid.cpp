@@ -4,8 +4,8 @@
 
 Asteroid::Asteroid(sf::RenderWindow* window)
 {
-	float offsetX = static_cast<float>((rand() % 2 + 1) * 0.5f);
-	float offsetY = static_cast<float>((rand() % 2 + 1) * 0.5f);
+	float offsetX = static_cast<float>((rand() % 1 + 1) * 0.5f);
+	float offsetY = static_cast<float>((rand() % 1 + 1) * 0.5f);
 
 	switch (rand() % 4)
 	{
@@ -54,6 +54,7 @@ Asteroid::Asteroid(sf::RenderWindow* window)
 
 	this->damage = rand() % 30 + 15;
 	this->health = 100;
+	this->points = rand() % 150 + 50;
 }
 
 Asteroid::~Asteroid()

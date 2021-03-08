@@ -17,6 +17,9 @@ using sf::Event;
 using sf::VideoMode;
 using sf::Mouse;
 using sf::Texture;
+using sf::RectangleShape;
+using sf::Font;
+using sf::Text;
 
 using std::cout;
 using std::endl;
@@ -33,10 +36,12 @@ private:
 	RenderWindow* renderWindow;
 	Texture backgroundTexture;
 	Sprite background;
+	RectangleShape hpBarRect;
+	Font textFont;
 
-	int rotation = 0;
-	const float maxSpeed = 8.f;
-	const float acceleration = 0.5f;
+	int rotation;
+	int totalPoints;
+	bool isWin;
 
 	//bullets vector
 	vector<Bullet> bullets;
@@ -63,19 +68,28 @@ private:
 	void drawBullets();
 	void deleteBullets();
 
+	void addAsteroids();
 	void moveAsteroids();
 	void drawAsteroids();
 	void drawDestroyedAsteroids();
 	void deleteAsteroids();
 
 	void collisionCheck();
-	bool bulletAndSpriteIntersect(const Sprite &asteroid, const CircleShape &bullet);
+	bool bulletAndAsteroidIntersect(const Sprite &asteroid, const CircleShape &bullet);
+	bool shipAndAsteroidIntersect(const Sprite &asteroid);
 
 	void loadTextures();
+
+	void updateHpBar();
+	void updatePoints();
+
+	void gameOver();
 
 public:
 	
 	//public variables
+	bool isPaused;
+	bool isOver;
 
 	//accessorss
 

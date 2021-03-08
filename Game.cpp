@@ -13,60 +13,71 @@ void Game::initWindow()
 
 void Game::handleEvents()
 {
-	if(this->renderWindow->pollEvent(this->event))
+	if (this->renderWindow->pollEvent(this->event))
 	{
-		switch (this->event.type)
+		if (this->event.key.code == sf::Keyboard::Escape)
 		{
-			case sf::Event::Closed:
+			this->isPaused = true;
+		}
+		if (this->event.key.code == sf::Keyboard::Enter)
+		{
+			this->isPaused = false;
+		}
+
+		if(!this->isPaused)
+		{
+			switch (this->event.type)
 			{
-				cout << "Closing window...\n";
+				case sf::Event::Closed:
+				{
+					cout << "Closing window...\n";
 
-				this->renderWindow->close();
+					this->renderWindow->close();
 
-				break;
+					break;
+				}
+				case sf::Event::MouseButtonPressed:
+				{
+					Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
+
+					bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
+						static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
+
+					this->bullets.push_back(bullet);
+
+					break;
+				}
+
+				default: break;
 			}
 
-			case sf::Event::MouseButtonPressed:
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 			{
-				Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
+				this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
+					static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
 
-				bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
-									   static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
+				//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+			{
+				this->spaceShip.body.rotate(-3);
+				this->rotation -= 3;
+				this->rotation = this->rotation % 360;
 
-				this->bullets.push_back(bullet);
+				//cout << "Current rotation: " << this->rotation << endl;
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+			{
+				this->spaceShip.body.rotate(3);
+				this->rotation += 3;
+				this->rotation = this->rotation % 360;
 
-				break;
+				//cout << "Current rotation: " << this->rotation << endl;
 			}
 
-			default: break;
+			this->validatePosition();
 		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-		{
-			this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
-				static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
-
-			//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-		{
-			this->spaceShip.body.rotate(-3);
-			this->rotation -= 3;
-			this->rotation = this->rotation % 360;
-
-			//cout << "Current rotation: " << this->rotation << endl;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-		{
-			this->spaceShip.body.rotate(3);
-			this->rotation += 3;
-			this->rotation = this->rotation % 360;
-
-			//cout << "Current rotation: " << this->rotation << endl;
-		}
-
-		this->validatePosition();
-	}
+	}	
 }
 
 void Game::validatePosition()
@@ -216,10 +227,35 @@ void Game::collisionCheck()
 	//ship part
 	if (!this->asteroids.empty())
 	{
+		for (vector<Asteroid>::iterator aIter = this->asteroids.begin(); aIter != this->asteroids.end();)
+		{
+			if (this->shipAndAsteroidIntersect(aIter->meteorite))
+			{
+				aIter->health = 0;
+				aIter->meteorite.setTexture(this->explosions[0]);
+				this->destroyedAsteroids.push_back(*aIter);
 
+				this->spaceShip.setHealth(this->spaceShip.getHealth() - aIter->damage);
+				
+				this->hpBarRect.setFillColor(sf::Color::Red);
+				
+				if (this->spaceShip.getHealth() <= 0)
+				{
+					std::cout << "Game over..." << std::endl;
+
+					this->isOver = true;
+					//this->isWin = false;
+					//this->renderWindow->close();
+				}
+				else
+				{
+					this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15.f));
+				}
+			}
+
+			aIter++;
+		}
 	}
-
-	bool asteroidIsDeleted = false;
 
 	//bullets part
 	if (!this->bullets.empty() && !this->asteroids.empty())
@@ -228,9 +264,7 @@ void Game::collisionCheck()
 		{
 			for (vector<Asteroid>::iterator aIter = this->asteroids.begin(); aIter != this->asteroids.end();)
 			{
-				asteroidIsDeleted = false;
-
-				if (bulletAndSpriteIntersect(aIter->meteorite, bIter->bullet))
+				if (this->bulletAndAsteroidIntersect(aIter->meteorite, bIter->bullet))
 				{
 					aIter->health -= bIter->damage;
 
@@ -239,24 +273,24 @@ void Game::collisionCheck()
 					{
 						aIter->meteorite.setTexture(this->explosions[0]);
 						this->destroyedAsteroids.push_back(*aIter);
+					
+						this->totalPoints += aIter->points;
 					}
 
 					//destory bullet
-					bIter->bullet.setRadius(15);
+					bIter->bullet.setRadius(16);
 					bIter->bullet.setTexture(&this->explosions[this->explosions.size() - 1]);
 					this->renderWindow->draw(bIter->bullet);
 					bIter->isDestoyed = true;
 				}
-
 				++aIter;
 			}
-
 			++bIter;
 		}
 	}
 }
 
-bool Game::bulletAndSpriteIntersect(const Sprite &asteroid, const CircleShape &bullet)
+bool Game::bulletAndAsteroidIntersect(const Sprite &asteroid, const CircleShape &bullet)
 {
 	float dX = asteroid.getPosition().x - bullet.getPosition().x;
 	float dY = asteroid.getPosition().y - bullet.getPosition().y;
@@ -264,6 +298,17 @@ bool Game::bulletAndSpriteIntersect(const Sprite &asteroid, const CircleShape &b
 	float spriteRadius = static_cast<float>((asteroid.getTexture()->getSize().x + asteroid.getTexture()->getSize().y) / 4);
 
 	return sqrt(dX * dX + dY * dY) <= (spriteRadius + bullet.getRadius());
+}
+
+bool Game::shipAndAsteroidIntersect(const Sprite& asteroid)
+{
+	float dX = asteroid.getPosition().x - this->spaceShip.body.getPosition().x;
+	float dY = asteroid.getPosition().y - this->spaceShip.body.getPosition().y;
+
+	float spriteRadius = static_cast<float>((asteroid.getTexture()->getSize().x + asteroid.getTexture()->getSize().y) / 4);
+	float shipRadius = static_cast<float>((this->spaceShip.body.getTexture()->getSize().x + this->spaceShip.body.getTexture()->getSize().y) / 4);
+
+	return sqrt(dX * dX + dY * dY) <= (spriteRadius + shipRadius);
 }
 
 //load textures
@@ -354,12 +399,37 @@ void Game::loadTextures()
 	this->explosions.push_back(Texture(tempTexture));
 }
 
-//public func
-
-void Game::update()
+void Game::updateHpBar()
 {
-	this->handleEvents();
+	this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15.f));
+	
+	this->renderWindow->draw(this->hpBarRect);
+	
+	this->hpBarRect.setFillColor(sf::Color::Green);
 
+	RectangleShape borderRect;
+
+	borderRect.setSize(Vector2f(202.f, 17.f));
+	borderRect.setOutlineColor(sf::Color::White);
+	borderRect.setFillColor(sf::Color::Transparent);
+	borderRect.setOutlineThickness(1.f);
+	borderRect.setPosition(static_cast<float>(this->renderWindow->getSize().x - 251), 19.f);
+
+	this->renderWindow->draw(borderRect);
+}
+
+void Game::updatePoints()
+{
+	Text points;
+	points.setFont(this->textFont);
+	points.setString(sf::String(std::to_string(this->totalPoints)));
+	points.setPosition(10.f, 10.f);
+
+	this->renderWindow->draw(points);
+}
+
+void Game::addAsteroids()
+{
 	if (rand() % 101 == 50 && this->asteroids.size() <= 6)
 	{
 		Asteroid tempAsteroid = Asteroid(this->renderWindow);
@@ -371,27 +441,65 @@ void Game::update()
 	}
 }
 
+void Game::gameOver()
+{
+	Text gameOverText;
+	gameOverText.setString(sf::String("GAME OVER"));
+	gameOverText.setFont(this->textFont);
+	gameOverText.setCharacterSize(40);
+	gameOverText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - gameOverText.getGlobalBounds().width / 2),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - gameOverText.getGlobalBounds().height / 2));
+
+	this->renderWindow->draw(gameOverText);
+
+	this->renderWindow->display();
+}
+
+//public func
+
+void Game::update()
+{
+	this->handleEvents();
+
+	if (!this->isPaused) this->addAsteroids();
+}
+
 void Game::render()
 {
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
-	//redraw ship
-	this->renderWindow->draw(this->spaceShip.body);
+	if (!this->isOver)
+	{
+		//redraw ship
+		this->renderWindow->draw(this->spaceShip.body);
 
-	//bullets logic
-	this->moveBullets();
-	
-	//asteroid logic
-	this->moveAsteroids();
+		//bullets logic
+		this->moveBullets();
 
-	this->collisionCheck();
+		//asteroid logic
+		this->moveAsteroids();
 
-	this->drawBullets();
-	this->drawAsteroids();
+		this->collisionCheck();
 
-	//display all objects
-	this->renderWindow->display();
+		//draw entities
+		this->drawBullets();
+		this->drawAsteroids();
+
+		//update and draw hpBar
+		this->updateHpBar();
+
+		//update points
+		this->updatePoints();
+
+		//display all objects
+		this->renderWindow->display();
+	}
+	else
+	{
+		this->gameOver();
+	}
 }
 
 bool Game::isRunning()
@@ -414,6 +522,19 @@ Game::Game()
 	this->spaceShip.body.setRotation(90);
 
 	this->background.setTexture(this->backgroundTexture);
+
+	this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15));
+	this->hpBarRect.setFillColor(sf::Color::Green);
+	this->hpBarRect.setPosition(static_cast<float>(this->renderWindow->getSize().x - 250), 20.f);
+
+	this->rotation = 0;
+	this->totalPoints = 0;
+
+	this->isPaused = false;
+	this->isOver = false;
+	this->isWin = false;
+
+	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");
 }
 
 Game::~Game()
