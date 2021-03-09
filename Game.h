@@ -90,7 +90,7 @@ private:
 	void updateHpBar();
 	void updatePoints();
 
-	void gameOver();
+	void gameOver(bool gameOverHover, bool returnHover);
 	void restartGame();
 
 	bool isMouseInTextRegion(Vector2i mousePos, Text &text);
@@ -101,11 +101,12 @@ public:
 	bool isPaused;
 	bool isOver;
 	bool startMenu;
+	bool noRedraw;
 
 	//accessorss
 
 	//public func
-	void displayStartMenu();
+	void displayStartMenu(bool startGameHover, bool exitGameHover);
 	void update();
 	void render();
 	bool isRunning();

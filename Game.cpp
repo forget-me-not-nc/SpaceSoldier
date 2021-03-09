@@ -98,6 +98,32 @@ void Game::handleEvents()
 			{
 				switch (this->event.type)
 				{
+					case sf::Event::MouseMoved:
+					{
+						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
+
+						//return to main menu click
+						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						{
+							this->displayStartMenu(true, false);
+
+							this->noRedraw = true;
+						}
+						//click on "Game over text"
+						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						{
+							this->displayStartMenu(false, true);
+
+							this->noRedraw = true;
+						}
+						else
+						{
+							this->noRedraw = false;
+						}
+
+						break;
+					}
+
 					case sf::Event::MouseButtonPressed:
 					{
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
@@ -124,10 +150,36 @@ void Game::handleEvents()
 		}
 		else if (this->isOver)
 		{
-			this->gameOver();
+			if(!this->noRedraw) this->gameOver(false, false);
 
 			switch (this->event.type)
 			{
+				case sf::Event::MouseMoved:
+				{
+					Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
+
+					//return to main menu click
+					if (this->isMouseInTextRegion(mousePos, this->gameOverText))
+					{
+						this->gameOver(true, false);
+
+						this->noRedraw = true;
+					}
+					//click on "Game over text"
+					else if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
+					{
+						this->gameOver(false, true);
+
+						this->noRedraw = true;
+					}
+					else
+					{
+						this->noRedraw = false;
+					}
+
+					break;
+				}
+
 				case sf::Event::MouseButtonPressed:
 				{
 					Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
@@ -521,13 +573,43 @@ void Game::addAsteroids()
 	}
 }
 
-void Game::gameOver()
+void Game::gameOver(bool gameOverHover, bool returnHover)
 {
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
 	this->renderWindow->draw(this->gameOverText);
 	this->renderWindow->draw(this->returnToMainMenuText);
+
+	if (gameOverHover)
+	{
+		RectangleShape borders;
+		borders.setSize(
+			Vector2f(this->gameOverText.getGlobalBounds().width + 8,
+					this->gameOverText.getGlobalBounds().height + 16));
+		borders.setPosition(
+			Vector2f(this->gameOverText.getPosition().x - 4,
+				this->gameOverText.getPosition().y - 1));
+		borders.setOutlineThickness(1.5f);
+		borders.setFillColor(sf::Color::Transparent);
+
+		this->renderWindow->draw(borders);
+	}
+
+	if (returnHover)
+	{
+		RectangleShape borders;
+		borders.setSize(
+			Vector2f(this->returnToMainMenuText.getGlobalBounds().width + 8,
+					this->returnToMainMenuText.getGlobalBounds().height + 16));
+		borders.setPosition(
+			Vector2f(this->returnToMainMenuText.getPosition().x - 4,
+					this->returnToMainMenuText.getPosition().y - 1));
+		borders.setOutlineThickness(1.5f);
+		borders.setFillColor(sf::Color::Transparent);
+
+		this->renderWindow->draw(borders);
+	}
 
 	this->renderWindow->display();
 }
@@ -548,6 +630,7 @@ void Game::restartGame()
 	this->isPaused = false;
 	this->isOver = false;
 	this->startMenu = true;
+	this->noRedraw = false;
 
 	//clear entiti vectors 
 	this->destroyedAsteroids.clear();
@@ -565,7 +648,7 @@ bool Game::isMouseInTextRegion(Vector2i mousePos, Text &text)
 
 //public func
 
-void Game::displayStartMenu()
+void Game::displayStartMenu(bool startGameHover, bool exitGameHover)
 {
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
@@ -573,6 +656,36 @@ void Game::displayStartMenu()
 	//draw texts
 	this->renderWindow->draw(this->startGameText);
 	this->renderWindow->draw(this->exitGameText);
+
+	if (startGameHover)
+	{
+		RectangleShape borders;
+		borders.setSize(
+			Vector2f(this->startGameText.getGlobalBounds().width + 8, 
+					 this->startGameText.getGlobalBounds().height + 16));
+		borders.setPosition(
+			Vector2f(this->startGameText.getPosition().x - 4,
+					 this->startGameText.getPosition().y - 1));
+		borders.setOutlineThickness(1.5f);
+		borders.setFillColor(sf::Color::Transparent);
+
+		this->renderWindow->draw(borders);
+	}
+
+	if (exitGameHover)
+	{
+		RectangleShape borders;
+		borders.setSize(
+			Vector2f(this->exitGameText.getGlobalBounds().width + 8,
+					this->exitGameText.getGlobalBounds().height + 16));
+		borders.setPosition(
+			Vector2f(this->exitGameText.getPosition().x - 4,
+					this->exitGameText.getPosition().y - 1));
+		borders.setOutlineThickness(1.5f);
+		borders.setFillColor(sf::Color::Transparent);
+
+		this->renderWindow->draw(borders);
+	}
 
 	this->renderWindow->display();
 }
@@ -653,6 +766,7 @@ Game::Game()
 	this->isPaused = false;
 	this->isOver = false;
 	this->startMenu = true;
+	this->noRedraw = false;
 
 	//load font
 	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");
