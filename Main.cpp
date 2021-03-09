@@ -12,16 +12,21 @@ int main()
 	//init game class
 	Game game;
 
+	bool loadLoadingScreen = true;
+
 	//game loop
 	while (game.isRunning())
 	{
 		game.update();
 		
-		if (game.startMenu)
+		if (loadLoadingScreen)
 		{
-			if(!game.noRedraw) game.displayStartMenu(false, false);
+			loadLoadingScreen = false;
+
+			game.displayStartMenu(false, false);
 		}
-		else if(!game.isPaused && !game.isOver) game.render();
+
+		game.render();
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1)); //to reduce the load on CPU while game is waiting to change state 
 	}

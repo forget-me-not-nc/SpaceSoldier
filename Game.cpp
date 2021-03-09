@@ -30,72 +30,134 @@ void Game::handleEvents()
 			default: break;
 		}
 
-		//hierarchy of program states and events handling
-		if (!this->isOver)
+		//make decisions according to game state
+		switch (this->gameState)
 		{
-			if (!this->startMenu)
+			case GameStates::MAIN_MENU:
 			{
-				if (this->isPaused)
+				if(!this->noRedraw) this->displayStartMenu(false, false);
+
+				switch (this->event.type)
 				{
-					if (this->event.key.code == sf::Keyboard::Enter)
+					case sf::Event::MouseMoved:
 					{
-						this->isPaused = false;
-					}
-				}
-				//if game unpaused handle main events
-				else if (!this->isPaused)
-				{
-					switch (this->event.type)
-					{
-						case sf::Event::MouseButtonPressed:
+						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
+					
+						//return to main menu click
+						if (this->isMouseInTextRegion(mousePos, this->startGameText))
 						{
-							Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
-
-							bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
-								static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
-
-							this->bullets.push_back(bullet);
-
-							break;
+							this->displayStartMenu(true, false);
+					
+							this->noRedraw = true;
 						}
-
-						default: break;
+						//exit game click
+						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						{
+							this->displayStartMenu(false, true);
+					
+							this->noRedraw = true;
+						}
+						else
+						{
+							this->noRedraw = false;
+						}
+					
+						break;
 					}
-
-					//keyboards events
-					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+					
+					case sf::Event::MouseButtonPressed:
 					{
-						this->isPaused = true;
+						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
+					
+						//start game click
+						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						{
+							this->gameState = GameStates::RENDER;
+						}
+						//exit game click
+						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						{
+							cout << "Closing window...\n";
+					
+							this->renderWindow->close();
+						}
+					
+						break;
 					}
-					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-					{
-						this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
-							static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
-
-						//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
-					}
-					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-					{
-						this->spaceShip.body.rotate(-3);
-						this->rotation -= 3;
-						this->rotation = this->rotation % 360;
-
-						//cout << "Current rotation: " << this->rotation << endl;
-					}
-					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-					{
-						this->spaceShip.body.rotate(3);
-						this->rotation += 3;
-						this->rotation = this->rotation % 360;
-
-						//cout << "Current rotation: " << this->rotation << endl;
-					}
-
-					this->validatePosition();
+					
+					default: break;
 				}
-			}
-			else if (this->startMenu)
+
+				break;
+			}	
+			
+			case GameStates::PAUSE:
 			{
+				if (this->event.key.code == sf::Keyboard::Enter)
+				{
+					this->gameState = GameStates::RENDER;
+				}
+
+				break;
+			}
+
+			case GameStates::RENDER:
+			{
+				switch (this->event.type)
+				{
+					case sf::Event::MouseButtonPressed:
+					{
+						Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
+					
+						bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
+							static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
+					
+						this->bullets.push_back(bullet);
+					
+						break;
+					}
+					
+					default: break;
+				}
+					
+				//keyboards events
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+				{
+					this->gameState = GameStates::PAUSE;
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+				{
+					this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
+						static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
+					
+					//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+				{
+					this->spaceShip.body.rotate(-3);
+					this->rotation -= 3;
+					this->rotation = this->rotation % 360;
+					
+					//cout << "Current rotation: " << this->rotation << endl;
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+				{
+					this->spaceShip.body.rotate(3);
+					this->rotation += 3;
+					this->rotation = this->rotation % 360;
+					
+					//cout << "Current rotation: " << this->rotation << endl;
+				}
+					
+				this->validatePosition();
+
+				break;
+			}
+
+			case GameStates::GAME_OVER:
+			{
+				if (!this->noRedraw) this->gameOver(false, false);
+
 				switch (this->event.type)
 				{
 					case sf::Event::MouseMoved:
@@ -103,16 +165,16 @@ void Game::handleEvents()
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 
 						//return to main menu click
-						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						if (this->isMouseInTextRegion(mousePos, this->gameOverText))
 						{
-							this->displayStartMenu(true, false);
+							this->gameOver(true, false);
 
 							this->noRedraw = true;
 						}
 						//click on "Game over text"
-						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						else if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
 						{
-							this->displayStartMenu(false, true);
+							this->gameOver(false, true);
 
 							this->noRedraw = true;
 						}
@@ -128,13 +190,13 @@ void Game::handleEvents()
 					{
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 
-						//start game click
-						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						//return to main menu click
+						if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
 						{
-							this->startMenu = false;
+							this->restartGame();
 						}
-						//exit game click
-						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						//click on "Game over text"
+						else if (this->isMouseInTextRegion(mousePos, this->gameOverText))
 						{
 							cout << "Closing window...\n";
 
@@ -142,66 +204,15 @@ void Game::handleEvents()
 						}
 
 						break;
-					}
-
+					}	
+						
 					default: break;
 				}
+
+				break;
 			}
-		}
-		else if (this->isOver)
-		{
-			if(!this->noRedraw) this->gameOver(false, false);
 
-			switch (this->event.type)
-			{
-				case sf::Event::MouseMoved:
-				{
-					Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
-
-					//return to main menu click
-					if (this->isMouseInTextRegion(mousePos, this->gameOverText))
-					{
-						this->gameOver(true, false);
-
-						this->noRedraw = true;
-					}
-					//click on "Game over text"
-					else if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
-					{
-						this->gameOver(false, true);
-
-						this->noRedraw = true;
-					}
-					else
-					{
-						this->noRedraw = false;
-					}
-
-					break;
-				}
-
-				case sf::Event::MouseButtonPressed:
-				{
-					Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
-
-					//return to main menu click
-					if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
-					{
-						this->restartGame();
-					}
-					//click on "Game over text"
-					else if (this->isMouseInTextRegion(mousePos, this->gameOverText))
-					{
-						cout << "Closing window...\n";
-
-						this->renderWindow->close();
-					}
-
-					break;
-				}	
-				
-				default: break;
-			}
+			default: break;
 		}
 	}	
 }
@@ -375,7 +386,7 @@ void Game::collisionCheck()
 				{
 					std::cout << "Game over..." << std::endl;
 
-					this->isOver = true;
+					this->gameState = GameStates::GAME_OVER;
 				}
 				else
 				{
@@ -627,10 +638,13 @@ void Game::restartGame()
 	this->rotation = 0;
 	this->totalPoints = 0;
 
-	this->isPaused = false;
-	this->isOver = false;
-	this->startMenu = true;
+	//this->isPaused = false;
+	//this->isOver = false;
+	//this->startMenu = true;
 	this->noRedraw = false;
+
+	//set first game state
+	this->gameState = GameStates::MAIN_MENU;
 
 	//clear entiti vectors 
 	this->destroyedAsteroids.clear();
@@ -694,38 +708,41 @@ void Game::update()
 {
 	this->handleEvents();
 
-	if (!this->isPaused && !this->isOver && !this->startMenu) this->addAsteroids();
+	if (this->gameState == GameStates::RENDER) this->addAsteroids();
 }
 
 //main render loop
 void Game::render()
 {
-	this->renderWindow->clear(sf::Color::Black);
-	this->renderWindow->draw(this->background);
+	if (this->gameState == GameStates::RENDER)
+	{
+		this->renderWindow->clear(sf::Color::Black);
+		this->renderWindow->draw(this->background);
 
-	//redraw ship
-	this->renderWindow->draw(this->spaceShip.body);
+		//redraw ship
+		this->renderWindow->draw(this->spaceShip.body);
 
-	//bullets logic
-	this->moveBullets();
+		//bullets logic
+		this->moveBullets();
 
-	//asteroid logic
-	this->moveAsteroids();
+		//asteroid logic
+		this->moveAsteroids();
 
-	this->collisionCheck();
+		this->collisionCheck();
 
-	//draw entities
-	this->drawBullets();
-	this->drawAsteroids();
+		//draw entities
+		this->drawBullets();
+		this->drawAsteroids();
 
-	//update and draw hpBar
-	this->updateHpBar();
+		//update and draw hpBar
+		this->updateHpBar();
 
-	//update points
-	this->updatePoints();
+		//update points
+		this->updatePoints();
 
-	//display all objects
-	this->renderWindow->display();
+		//display all objects
+		this->renderWindow->display();
+	}
 }
 
 bool Game::isRunning()
@@ -763,10 +780,13 @@ Game::Game()
 	this->rotation = 0;
 	this->totalPoints = 0;
 
-	this->isPaused = false;
-	this->isOver = false;
-	this->startMenu = true;
+	//this->isPaused = false;
+	//this->isOver = false;
+	//this->startMenu = true;
 	this->noRedraw = false;
+
+	//set first game state
+	this->gameState = GameStates::MAIN_MENU;
 
 	//load font
 	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");

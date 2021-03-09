@@ -7,6 +7,7 @@
 #include "SpaceShip.h"
 #include "Asteroid.h"
 #include "Bullet.h"
+#include "GameStates.h"
 
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
@@ -44,8 +45,10 @@ private:
 	Text returnToMainMenuText;
 	Text startGameText;
 	Text exitGameText;
-
 	Text gameOverText;
+
+	//game state
+	GameStates gameState;
 
 	int rotation;
 	int totalPoints;
@@ -98,9 +101,9 @@ private:
 public:
 	
 	//public variables
-	bool isPaused;
-	bool isOver;
-	bool startMenu;
+	//bool isPaused;
+	//bool isOver;
+	//bool startMenu;
 	bool noRedraw;
 
 	//accessorss
