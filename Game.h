@@ -45,6 +45,8 @@ private:
 	Text startGameText;
 	Text exitGameText;
 
+	Text gameOverText;
+
 	int rotation;
 	int totalPoints;
 
@@ -89,6 +91,7 @@ private:
 	void updatePoints();
 
 	void gameOver();
+	void restartGame();
 
 	bool isMouseInTextRegion(Vector2i mousePos, Text &text);
 

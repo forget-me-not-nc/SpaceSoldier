@@ -35,11 +35,6 @@ void Game::handleEvents()
 		{
 			if (!this->startMenu)
 			{
-				if (this->event.key.code == sf::Keyboard::Escape)
-				{
-					this->isPaused = true;
-				}
-
 				if (this->isPaused)
 				{
 					if (this->event.key.code == sf::Keyboard::Enter)
@@ -68,6 +63,10 @@ void Game::handleEvents()
 					}
 
 					//keyboards events
+					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+					{
+						this->isPaused = true;
+					}
 					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 					{
 						this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
@@ -126,6 +125,31 @@ void Game::handleEvents()
 		else if (this->isOver)
 		{
 			this->gameOver();
+
+			switch (this->event.type)
+			{
+				case sf::Event::MouseButtonPressed:
+				{
+					Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
+
+					//return to main menu click
+					if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
+					{
+						this->restartGame();
+					}
+					//click on "Game over text"
+					else if (this->isMouseInTextRegion(mousePos, this->gameOverText))
+					{
+						cout << "Closing window...\n";
+
+						this->renderWindow->close();
+					}
+
+					break;
+				}	
+				
+				default: break;
+			}
 		}
 	}	
 }
@@ -283,7 +307,13 @@ void Game::collisionCheck()
 			{
 				aIter->health = 0;
 				aIter->meteorite.setTexture(this->explosions[0]);
+				aIter->meteorite.setTextureRect(sf::IntRect(0, 0, 90, 90));
+
 				this->destroyedAsteroids.push_back(*aIter);
+
+				this->totalPoints -= aIter->points;
+
+				if (this->totalPoints < 0) this->totalPoints = 0;
 
 				this->spaceShip.setHealth(this->spaceShip.getHealth() - aIter->damage);
 				
@@ -472,7 +502,7 @@ void Game::updatePoints()
 {
 	Text points;
 	points.setFont(this->textFont);
-	points.setString(sf::String(std::to_string(this->totalPoints)));
+	points.setString(sf::String("Score: " + std::to_string(this->totalPoints)));
 	points.setPosition(10.f, 10.f);
 
 	this->renderWindow->draw(points);
@@ -496,21 +526,33 @@ void Game::gameOver()
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
-	//game over txt
-	Text gameOverText;
-	gameOverText.setString(sf::String("GAME OVER"));
-	gameOverText.setFont(this->textFont);
-	gameOverText.setCharacterSize(60);
-	gameOverText.setPosition(
-		static_cast<float>(this->renderWindow->getSize().x / 2 - gameOverText.getGlobalBounds().width / 2),
-		static_cast<float>(this->renderWindow->getSize().y / 2 - gameOverText.getGlobalBounds().height / 2));
-
-	this->renderWindow->draw(gameOverText);
-
-	//return rect
-
+	this->renderWindow->draw(this->gameOverText);
+	this->renderWindow->draw(this->returnToMainMenuText);
 
 	this->renderWindow->display();
+}
+
+void Game::restartGame()
+{
+	//reinit ship pos and settings
+	this->spaceShip.setHealth(200);
+	this->spaceShip.body.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2),
+		static_cast<float>(this->renderWindow->getSize().y / 2));
+	this->spaceShip.body.setRotation(90);
+
+	//reinit vars
+	this->rotation = 0;
+	this->totalPoints = 0;
+
+	this->isPaused = false;
+	this->isOver = false;
+	this->startMenu = true;
+
+	//clear entiti vectors 
+	this->destroyedAsteroids.clear();
+	this->asteroids.clear();
+	this->bullets.clear();
 }
 
 bool Game::isMouseInTextRegion(Vector2i mousePos, Text &text)
@@ -528,9 +570,9 @@ void Game::displayStartMenu()
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
+	//draw texts
 	this->renderWindow->draw(this->startGameText);
 	this->renderWindow->draw(this->exitGameText);
-
 
 	this->renderWindow->display();
 }
@@ -633,6 +675,21 @@ Game::Game()
 		static_cast<float>(this->renderWindow->getSize().x / 2 - exitGameText.getGlobalBounds().width / 2),
 		static_cast<float>(this->renderWindow->getSize().y / 2 - exitGameText.getGlobalBounds().height / 2 + 100));
 
+	//return to menu text
+	this->returnToMainMenuText.setFont(this->textFont);
+	this->returnToMainMenuText.setString(sf::String("Return"));
+	this->returnToMainMenuText.setCharacterSize(40);
+	this->returnToMainMenuText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x - exitGameText.getGlobalBounds().width - 30),
+		static_cast<float>(this->renderWindow->getSize().y - exitGameText.getGlobalBounds().height - 50));
+
+	//game over text
+	this->gameOverText.setString(sf::String("GAME OVER"));
+	this->gameOverText.setFont(this->textFont);
+	this->gameOverText.setCharacterSize(60);
+	this->gameOverText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - this->gameOverText.getGlobalBounds().width / 2),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - this->gameOverText.getGlobalBounds().height / 2));
 }
 
 Game::~Game()
