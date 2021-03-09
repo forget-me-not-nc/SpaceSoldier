@@ -41,7 +41,6 @@ private:
 
 	int rotation;
 	int totalPoints;
-	bool isWin;
 
 	//bullets vector
 	vector<Bullet> bullets;

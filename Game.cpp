@@ -15,33 +15,51 @@ void Game::handleEvents()
 {
 	if (this->renderWindow->pollEvent(this->event))
 	{
+		//always check for this events
+		switch (this->event.type)
+		{
+			case sf::Event::Closed:
+			{
+				cout << "Closing window...\n";
+
+				this->renderWindow->close();
+
+				break;
+			}
+
+			default: break;
+		}
+
 		if (this->event.key.code == sf::Keyboard::Escape)
 		{
 			this->isPaused = true;
 		}
-		if (this->event.key.code == sf::Keyboard::Enter)
-		{
-			this->isPaused = false;
-		}
 
-		if(!this->isPaused)
+		if (this->isOver)
+		{
+			this->gameOver();
+		}
+		else if (this->isPaused)
+		{
+			if (this->event.key.code == sf::Keyboard::Escape)
+			{
+				this->isPaused = true;
+			}
+			if (this->event.key.code == sf::Keyboard::Enter)
+			{
+				this->isPaused = false;
+			}
+		}
+		else if(!this->isPaused)
 		{
 			switch (this->event.type)
 			{
-				case sf::Event::Closed:
-				{
-					cout << "Closing window...\n";
-
-					this->renderWindow->close();
-
-					break;
-				}
 				case sf::Event::MouseButtonPressed:
 				{
 					Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
 
 					bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
-						static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
+									   static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
 
 					this->bullets.push_back(bullet);
 
@@ -51,10 +69,11 @@ void Game::handleEvents()
 				default: break;
 			}
 
+			//keyboards events
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 			{
 				this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
-					static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
+										  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
 
 				//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
 			}
@@ -76,6 +95,7 @@ void Game::handleEvents()
 			}
 
 			this->validatePosition();
+			
 		}
 	}	
 }
@@ -244,8 +264,6 @@ void Game::collisionCheck()
 					std::cout << "Game over..." << std::endl;
 
 					this->isOver = true;
-					//this->isWin = false;
-					//this->renderWindow->close();
 				}
 				else
 				{
@@ -443,6 +461,9 @@ void Game::addAsteroids()
 
 void Game::gameOver()
 {
+	this->renderWindow->clear(sf::Color::Black);
+	this->renderWindow->draw(this->background);
+
 	Text gameOverText;
 	gameOverText.setString(sf::String("GAME OVER"));
 	gameOverText.setFont(this->textFont);
@@ -465,41 +486,35 @@ void Game::update()
 	if (!this->isPaused) this->addAsteroids();
 }
 
+//main render loop
 void Game::render()
 {
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
-	if (!this->isOver)
-	{
-		//redraw ship
-		this->renderWindow->draw(this->spaceShip.body);
+	//redraw ship
+	this->renderWindow->draw(this->spaceShip.body);
 
-		//bullets logic
-		this->moveBullets();
+	//bullets logic
+	this->moveBullets();
 
-		//asteroid logic
-		this->moveAsteroids();
+	//asteroid logic
+	this->moveAsteroids();
 
-		this->collisionCheck();
+	this->collisionCheck();
 
-		//draw entities
-		this->drawBullets();
-		this->drawAsteroids();
+	//draw entities
+	this->drawBullets();
+	this->drawAsteroids();
 
-		//update and draw hpBar
-		this->updateHpBar();
+	//update and draw hpBar
+	this->updateHpBar();
 
-		//update points
-		this->updatePoints();
+	//update points
+	this->updatePoints();
 
-		//display all objects
-		this->renderWindow->display();
-	}
-	else
-	{
-		this->gameOver();
-	}
+	//display all objects
+	this->renderWindow->display();
 }
 
 bool Game::isRunning()
@@ -532,7 +547,6 @@ Game::Game()
 
 	this->isPaused = false;
 	this->isOver = false;
-	this->isWin = false;
 
 	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");
 }
