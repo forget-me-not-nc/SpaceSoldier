@@ -467,7 +467,7 @@ void Game::gameOver()
 	Text gameOverText;
 	gameOverText.setString(sf::String("GAME OVER"));
 	gameOverText.setFont(this->textFont);
-	gameOverText.setCharacterSize(40);
+	gameOverText.setCharacterSize(60);
 	gameOverText.setPosition(
 		static_cast<float>(this->renderWindow->getSize().x / 2 - gameOverText.getGlobalBounds().width / 2),
 		static_cast<float>(this->renderWindow->getSize().y / 2 - gameOverText.getGlobalBounds().height / 2));
