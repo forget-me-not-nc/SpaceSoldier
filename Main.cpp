@@ -15,7 +15,8 @@ int main()
 	{
 		game.update();
 		
-		if(!game.isPaused && !game.isOver) game.render();
+		if (game.startMenu) game.displayStartMenu();
+		else if(!game.isPaused && !game.isOver) game.render();
 	}
 
 	//end program

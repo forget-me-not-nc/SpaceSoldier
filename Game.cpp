@@ -30,72 +30,102 @@ void Game::handleEvents()
 			default: break;
 		}
 
-		if (this->event.key.code == sf::Keyboard::Escape)
+		//hierarchy of program states and events handling
+		if (!this->isOver)
 		{
-			this->isPaused = true;
-		}
-
-		if (this->isOver)
-		{
-			this->gameOver();
-		}
-		else if (this->isPaused)
-		{
-			if (this->event.key.code == sf::Keyboard::Escape)
+			if (!this->startMenu)
 			{
-				this->isPaused = true;
-			}
-			if (this->event.key.code == sf::Keyboard::Enter)
-			{
-				this->isPaused = false;
-			}
-		}
-		else if(!this->isPaused)
-		{
-			switch (this->event.type)
-			{
-				case sf::Event::MouseButtonPressed:
+				if (this->event.key.code == sf::Keyboard::Escape)
 				{
-					Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
-
-					bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
-									   static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
-
-					this->bullets.push_back(bullet);
-
-					break;
+					this->isPaused = true;
 				}
 
-				default: break;
-			}
+				if (this->isPaused)
+				{
+					if (this->event.key.code == sf::Keyboard::Enter)
+					{
+						this->isPaused = false;
+					}
+				}
+				//if game unpaused handle main events
+				else if (!this->isPaused)
+				{
+					switch (this->event.type)
+					{
+						case sf::Event::MouseButtonPressed:
+						{
+							Bullet bullet(Vector2f(this->spaceShip.body.getPosition()), static_cast<float>(this->rotation));
 
-			//keyboards events
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+							bullet.bullet.move(static_cast<float>(bullet.speed.x * cos(bullet.angle * M_PI / 180)),
+								static_cast<float>(bullet.speed.y * sin(bullet.angle * M_PI / 180)));
+
+							this->bullets.push_back(bullet);
+
+							break;
+						}
+
+						default: break;
+					}
+
+					//keyboards events
+					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+					{
+						this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
+							static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
+
+						//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
+					}
+					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+					{
+						this->spaceShip.body.rotate(-3);
+						this->rotation -= 3;
+						this->rotation = this->rotation % 360;
+
+						//cout << "Current rotation: " << this->rotation << endl;
+					}
+					if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+					{
+						this->spaceShip.body.rotate(3);
+						this->rotation += 3;
+						this->rotation = this->rotation % 360;
+
+						//cout << "Current rotation: " << this->rotation << endl;
+					}
+
+					this->validatePosition();
+				}
+			}
+			else if (this->startMenu)
 			{
-				this->spaceShip.body.move(static_cast<float>(this->spaceShip.getSpeed().x * cos(this->rotation * M_PI / 180)),
-										  static_cast<float>(this->spaceShip.getSpeed().y * sin(this->rotation * M_PI / 180)));
+				switch (this->event.type)
+				{
+					case sf::Event::MouseButtonPressed:
+					{
+						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 
-				//cout << "Current Ship Pos--> x:" << this->spaceShip.body.getPosition().x << " y: " << this->spaceShip.body.getPosition().y << endl;
+						//start game click
+						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						{
+							this->startMenu = false;
+						}
+						//exit game click
+						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						{
+							cout << "Closing window...\n";
+
+							this->renderWindow->close();
+						}
+
+						break;
+					}
+
+					default: break;
+				}
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-			{
-				this->spaceShip.body.rotate(-3);
-				this->rotation -= 3;
-				this->rotation = this->rotation % 360;
-
-				//cout << "Current rotation: " << this->rotation << endl;
-			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-			{
-				this->spaceShip.body.rotate(3);
-				this->rotation += 3;
-				this->rotation = this->rotation % 360;
-
-				//cout << "Current rotation: " << this->rotation << endl;
-			}
-
-			this->validatePosition();
-			
+		}
+		else if (this->isOver)
+		{
+			this->gameOver();
 		}
 	}	
 }
@@ -290,6 +320,8 @@ void Game::collisionCheck()
 					if (aIter->health <= 0)
 					{
 						aIter->meteorite.setTexture(this->explosions[0]);
+						aIter->meteorite.setTextureRect(sf::IntRect(0, 0, 90, 90));
+						aIter->meteorite.setOrigin(Vector2f(45.f, 45.f));
 						this->destroyedAsteroids.push_back(*aIter);
 					
 						this->totalPoints += aIter->points;
@@ -464,6 +496,7 @@ void Game::gameOver()
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
+	//game over txt
 	Text gameOverText;
 	gameOverText.setString(sf::String("GAME OVER"));
 	gameOverText.setFont(this->textFont);
@@ -474,16 +507,39 @@ void Game::gameOver()
 
 	this->renderWindow->draw(gameOverText);
 
+	//return rect
+
+
 	this->renderWindow->display();
 }
 
+bool Game::isMouseInTextRegion(Vector2i mousePos, Text &text)
+{
+	return (mousePos.x >= text.getPosition().x &&
+			mousePos.x <= (text.getPosition().x + text.getGlobalBounds().width) &&
+			mousePos.y >= text.getPosition().y &&
+			mousePos.y <= (text.getPosition().y + text.getGlobalBounds().height));
+}
+
 //public func
+
+void Game::displayStartMenu()
+{
+	this->renderWindow->clear(sf::Color::Black);
+	this->renderWindow->draw(this->background);
+
+	this->renderWindow->draw(this->startGameText);
+	this->renderWindow->draw(this->exitGameText);
+
+
+	this->renderWindow->display();
+}
 
 void Game::update()
 {
 	this->handleEvents();
 
-	if (!this->isPaused) this->addAsteroids();
+	if (!this->isPaused && !this->isOver && !this->startMenu) this->addAsteroids();
 }
 
 //main render loop
@@ -526,29 +582,57 @@ bool Game::isRunning()
 
 Game::Game()
 {
+	//init window
 	this->initWindow();
 
+	//load textures
 	this->loadTextures();
 
+	//create ship
 	this->spaceShip = SpaceShip(this->videoMode.width, this->videoMode.height);
 
+	//ship settings
 	this->spaceShip.body.setTexture(this->spriteTexture);
 	this->spaceShip.body.setOrigin(Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2), static_cast<float>(this->spriteTexture.getSize().y / 2)));
 	this->spaceShip.body.setRotation(90);
 
+	//background texture
 	this->background.setTexture(this->backgroundTexture);
 
+	//hp bar settings
 	this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15));
 	this->hpBarRect.setFillColor(sf::Color::Green);
 	this->hpBarRect.setPosition(static_cast<float>(this->renderWindow->getSize().x - 250), 20.f);
 
+	//start variables
 	this->rotation = 0;
 	this->totalPoints = 0;
 
 	this->isPaused = false;
 	this->isOver = false;
+	this->startMenu = true;
 
+	//load font
 	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");
+
+	//set navigation text
+
+	//start game text
+	this->startGameText.setFont(this->textFont);
+	this->startGameText.setString(sf::String("Start Game"));
+	this->startGameText.setCharacterSize(50);
+	this->startGameText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - startGameText.getGlobalBounds().width / 2),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - startGameText.getGlobalBounds().height / 2 - 100));
+
+	//exit game text
+	this->exitGameText.setFont(this->textFont);
+	this->exitGameText.setString(sf::String("Exit Game"));
+	this->exitGameText.setCharacterSize(35);
+	this->exitGameText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - exitGameText.getGlobalBounds().width / 2),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - exitGameText.getGlobalBounds().height / 2 + 100));
+
 }
 
 Game::~Game()

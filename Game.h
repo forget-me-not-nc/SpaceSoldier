@@ -20,6 +20,7 @@ using sf::Texture;
 using sf::RectangleShape;
 using sf::Font;
 using sf::Text;
+using sf::Vector2i;
 
 using std::cout;
 using std::endl;
@@ -38,6 +39,11 @@ private:
 	Sprite background;
 	RectangleShape hpBarRect;
 	Font textFont;
+
+	//navigation
+	Text returnToMainMenuText;
+	Text startGameText;
+	Text exitGameText;
 
 	int rotation;
 	int totalPoints;
@@ -84,15 +90,19 @@ private:
 
 	void gameOver();
 
+	bool isMouseInTextRegion(Vector2i mousePos, Text &text);
+
 public:
 	
 	//public variables
 	bool isPaused;
 	bool isOver;
+	bool startMenu;
 
 	//accessorss
 
 	//public func
+	void displayStartMenu();
 	void update();
 	void render();
 	bool isRunning();
