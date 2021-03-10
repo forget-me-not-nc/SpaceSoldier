@@ -35,8 +35,6 @@ void Game::handleEvents()
 		{
 			case GameStates::MAIN_MENU:
 			{
-				if(!this->noRedraw) this->displayStartMenu(false, false);
-
 				switch (this->event.type)
 				{
 					case sf::Event::MouseMoved:
@@ -156,8 +154,6 @@ void Game::handleEvents()
 
 			case GameStates::GAME_OVER:
 			{
-				if (!this->noRedraw) this->gameOver(false, false);
-
 				switch (this->event.type)
 				{
 					case sf::Event::MouseMoved:
@@ -208,6 +204,12 @@ void Game::handleEvents()
 						
 					default: break;
 				}
+
+				break;
+			}
+
+			case GameStates::ADD_PLAYER:
+			{
 
 				break;
 			}
@@ -638,9 +640,6 @@ void Game::restartGame()
 	this->rotation = 0;
 	this->totalPoints = 0;
 
-	//this->isPaused = false;
-	//this->isOver = false;
-	//this->startMenu = true;
 	this->noRedraw = false;
 
 	//set first game state
@@ -780,9 +779,6 @@ Game::Game()
 	this->rotation = 0;
 	this->totalPoints = 0;
 
-	//this->isPaused = false;
-	//this->isOver = false;
-	//this->startMenu = true;
 	this->noRedraw = false;
 
 	//set first game state

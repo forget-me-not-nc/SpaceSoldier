@@ -12,18 +12,28 @@ int main()
 	//init game class
 	Game game;
 
-	bool loadLoadingScreen = true;
-
 	//game loop
 	while (game.isRunning())
 	{
 		game.update();
-		
-		if (loadLoadingScreen)
-		{
-			loadLoadingScreen = false;
 
-			game.displayStartMenu(false, false);
+		switch (game.gameState)
+		{
+			case GameStates::MAIN_MENU:
+			{
+				if(!game.noRedraw) game.displayStartMenu(false, false);
+
+				break;
+			}	
+
+			case GameStates::GAME_OVER:
+			{
+				if (!game.noRedraw) game.gameOver(false, false);
+
+				break;
+			}
+
+			default: break;
 		}
 
 		game.render();

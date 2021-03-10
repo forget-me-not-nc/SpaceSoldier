@@ -47,9 +47,6 @@ private:
 	Text exitGameText;
 	Text gameOverText;
 
-	//game state
-	GameStates gameState;
-
 	int rotation;
 	int totalPoints;
 
@@ -93,23 +90,23 @@ private:
 	void updateHpBar();
 	void updatePoints();
 
-	void gameOver(bool gameOverHover, bool returnHover);
 	void restartGame();
 
+	//check for Mouse pos accordint to navigation text
 	bool isMouseInTextRegion(Vector2i mousePos, Text &text);
 
 public:
 	
 	//public variables
-	//bool isPaused;
-	//bool isOver;
-	//bool startMenu;
 	bool noRedraw;
+	//game state
+	GameStates gameState;
 
 	//accessorss
 
 	//public func
 	void displayStartMenu(bool startGameHover, bool exitGameHover);
+	void gameOver(bool gameOverHover, bool returnHover);
 	void update();
 	void render();
 	bool isRunning();
