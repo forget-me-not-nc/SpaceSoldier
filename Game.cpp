@@ -1,6 +1,8 @@
 #include "Game.h"
 
+////////////////
 //private func
+////////////////
 
 void Game::initWindow()
 {
@@ -42,14 +44,14 @@ void Game::handleEvents()
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 					
 						//return to main menu click
-						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						if (isMouseInTextRegion(mousePos, this->startGameText))
 						{
 							this->displayStartMenu(true, false);
-					
+
 							this->noRedraw = true;
 						}
 						//exit game click
-						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						else if (isMouseInTextRegion(mousePos, this->exitGameText))
 						{
 							this->displayStartMenu(false, true);
 					
@@ -68,12 +70,12 @@ void Game::handleEvents()
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 					
 						//start game click
-						if (this->isMouseInTextRegion(mousePos, this->startGameText))
+						if (isMouseInTextRegion(mousePos, this->startGameText))
 						{
 							this->gameState = GameStates::RENDER;
 						}
 						//exit game click
-						else if (this->isMouseInTextRegion(mousePos, this->exitGameText))
+						else if (isMouseInTextRegion(mousePos, this->exitGameText))
 						{
 							cout << "Closing window...\n";
 					
@@ -161,14 +163,15 @@ void Game::handleEvents()
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 
 						//return to main menu click
-						if (this->isMouseInTextRegion(mousePos, this->gameOverText))
+						if (isMouseInTextRegion(mousePos, this->gameOverText))
 						{
 							this->gameOver(true, false);
+
 
 							this->noRedraw = true;
 						}
 						//click on "Game over text"
-						else if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
+						else if (isMouseInTextRegion(mousePos, this->returnToMainMenuText))
 						{
 							this->gameOver(false, true);
 
@@ -187,12 +190,12 @@ void Game::handleEvents()
 						Vector2i mousePos = sf::Mouse::getPosition(*this->renderWindow);
 
 						//return to main menu click
-						if (this->isMouseInTextRegion(mousePos, this->returnToMainMenuText))
+						if (isMouseInTextRegion(mousePos, this->returnToMainMenuText))
 						{
 							this->restartGame();
 						}
 						//click on "Game over text"
-						else if (this->isMouseInTextRegion(mousePos, this->gameOverText))
+						else if (isMouseInTextRegion(mousePos, this->gameOverText))
 						{
 							cout << "Closing window...\n";
 
@@ -208,7 +211,7 @@ void Game::handleEvents()
 				break;
 			}
 
-			case GameStates::ADD_PLAYER:
+			case GameStates::CREATE_PLAYER:
 			{
 
 				break;
@@ -247,7 +250,6 @@ void Game::validateSpeed()
 }
 
 //bulets logic
-
 void Game::moveBullets()
 {
 	if (!this->bullets.empty())
@@ -293,7 +295,6 @@ void Game::deleteBullets()
 }
 
 //asteroid logic
-
 void Game::moveAsteroids()
 {
 	if (!this->asteroids.empty())
@@ -360,7 +361,6 @@ void Game::deleteAsteroids()
 }
 
 //collision
-
 void Game::collisionCheck()
 {
 	//ship part
@@ -368,7 +368,7 @@ void Game::collisionCheck()
 	{
 		for (vector<Asteroid>::iterator aIter = this->asteroids.begin(); aIter != this->asteroids.end();)
 		{
-			if (this->shipAndAsteroidIntersect(aIter->meteorite))
+			if (shipAndAsteroidIntersect(aIter->meteorite, this->spaceShip.body))
 			{
 				aIter->health = 0;
 				aIter->meteorite.setTexture(this->explosions[0]);
@@ -407,7 +407,7 @@ void Game::collisionCheck()
 		{
 			for (vector<Asteroid>::iterator aIter = this->asteroids.begin(); aIter != this->asteroids.end();)
 			{
-				if (this->bulletAndAsteroidIntersect(aIter->meteorite, bIter->bullet))
+				if (bulletAndAsteroidIntersect(aIter->meteorite, bIter->bullet))
 				{
 					aIter->health -= bIter->damage;
 
@@ -435,29 +435,7 @@ void Game::collisionCheck()
 	}
 }
 
-bool Game::bulletAndAsteroidIntersect(const Sprite &asteroid, const CircleShape &bullet)
-{
-	float dX = asteroid.getPosition().x - bullet.getPosition().x;
-	float dY = asteroid.getPosition().y - bullet.getPosition().y;
-
-	float spriteRadius = static_cast<float>((asteroid.getTexture()->getSize().x + asteroid.getTexture()->getSize().y) / 4);
-
-	return sqrt(dX * dX + dY * dY) <= (spriteRadius + bullet.getRadius());
-}
-
-bool Game::shipAndAsteroidIntersect(const Sprite& asteroid)
-{
-	float dX = asteroid.getPosition().x - this->spaceShip.body.getPosition().x;
-	float dY = asteroid.getPosition().y - this->spaceShip.body.getPosition().y;
-
-	float spriteRadius = static_cast<float>((asteroid.getTexture()->getSize().x + asteroid.getTexture()->getSize().y) / 4);
-	float shipRadius = static_cast<float>((this->spaceShip.body.getTexture()->getSize().x + this->spaceShip.body.getTexture()->getSize().y) / 4);
-
-	return sqrt(dX * dX + dY * dY) <= (spriteRadius + shipRadius);
-}
-
 //load textures
-
 void Game::loadTextures()
 {
 	//ship texture
@@ -586,47 +564,6 @@ void Game::addAsteroids()
 	}
 }
 
-void Game::gameOver(bool gameOverHover, bool returnHover)
-{
-	this->renderWindow->clear(sf::Color::Black);
-	this->renderWindow->draw(this->background);
-
-	this->renderWindow->draw(this->gameOverText);
-	this->renderWindow->draw(this->returnToMainMenuText);
-
-	if (gameOverHover)
-	{
-		RectangleShape borders;
-		borders.setSize(
-			Vector2f(this->gameOverText.getGlobalBounds().width + 8,
-					this->gameOverText.getGlobalBounds().height + 16));
-		borders.setPosition(
-			Vector2f(this->gameOverText.getPosition().x - 4,
-				this->gameOverText.getPosition().y - 1));
-		borders.setOutlineThickness(1.5f);
-		borders.setFillColor(sf::Color::Transparent);
-
-		this->renderWindow->draw(borders);
-	}
-
-	if (returnHover)
-	{
-		RectangleShape borders;
-		borders.setSize(
-			Vector2f(this->returnToMainMenuText.getGlobalBounds().width + 8,
-					this->returnToMainMenuText.getGlobalBounds().height + 16));
-		borders.setPosition(
-			Vector2f(this->returnToMainMenuText.getPosition().x - 4,
-					this->returnToMainMenuText.getPosition().y - 1));
-		borders.setOutlineThickness(1.5f);
-		borders.setFillColor(sf::Color::Transparent);
-
-		this->renderWindow->draw(borders);
-	}
-
-	this->renderWindow->display();
-}
-
 void Game::restartGame()
 {
 	//reinit ship pos and settings
@@ -651,15 +588,50 @@ void Game::restartGame()
 	this->bullets.clear();
 }
 
-bool Game::isMouseInTextRegion(Vector2i mousePos, Text &text)
-{
-	return (mousePos.x >= text.getPosition().x &&
-			mousePos.x <= (text.getPosition().x + text.getGlobalBounds().width) &&
-			mousePos.y >= text.getPosition().y &&
-			mousePos.y <= (text.getPosition().y + text.getGlobalBounds().height));
-}
-
+////////////////
 //public func
+////////////////
+
+void Game::gameOver(bool gameOverHover, bool returnHover)
+{
+	this->renderWindow->clear(sf::Color::Black);
+	this->renderWindow->draw(this->background);
+
+	this->renderWindow->draw(this->gameOverText);
+	this->renderWindow->draw(this->returnToMainMenuText);
+
+	if (gameOverHover)
+	{
+		RectangleShape borders;
+		borders.setSize(
+			Vector2f(this->gameOverText.getGlobalBounds().width + 8,
+				this->gameOverText.getGlobalBounds().height + 16));
+		borders.setPosition(
+			Vector2f(this->gameOverText.getPosition().x - 4,
+				this->gameOverText.getPosition().y - 1));
+		borders.setOutlineThickness(1.5f);
+		borders.setFillColor(sf::Color::Transparent);
+
+		this->renderWindow->draw(borders);
+	}
+
+	if (returnHover)
+	{
+		RectangleShape borders;
+		borders.setSize(
+			Vector2f(this->returnToMainMenuText.getGlobalBounds().width + 8,
+				this->returnToMainMenuText.getGlobalBounds().height + 16));
+		borders.setPosition(
+			Vector2f(this->returnToMainMenuText.getPosition().x - 4,
+				this->returnToMainMenuText.getPosition().y - 1));
+		borders.setOutlineThickness(1.5f);
+		borders.setFillColor(sf::Color::Transparent);
+
+		this->renderWindow->draw(borders);
+	}
+
+	this->renderWindow->display();
+}
 
 void Game::displayStartMenu(bool startGameHover, bool exitGameHover)
 {
@@ -699,6 +671,16 @@ void Game::displayStartMenu(bool startGameHover, bool exitGameHover)
 
 		this->renderWindow->draw(borders);
 	}
+
+	this->renderWindow->display();
+}
+
+void Game::createPlayer()
+{
+	this->renderWindow->clear(sf::Color::Black);
+	this->renderWindow->draw(this->background);
+
+	this->renderWindow->draw(this->creatingPlayerText);
 
 	this->renderWindow->display();
 }
@@ -749,7 +731,9 @@ bool Game::isRunning()
 	return this->renderWindow->isOpen();
 }
 
+////////////////
 //constr & destr
+////////////////
 
 Game::Game()
 {
@@ -820,10 +804,18 @@ Game::Game()
 	this->gameOverText.setPosition(
 		static_cast<float>(this->renderWindow->getSize().x / 2 - this->gameOverText.getGlobalBounds().width / 2),
 		static_cast<float>(this->renderWindow->getSize().y / 2 - this->gameOverText.getGlobalBounds().height / 2));
+	
+	//creating player text
+	this->creatingPlayerText.setString(sf::String("Enter Players Nickname: "));
+	this->creatingPlayerText.setFont(this->textFont);
+	this->creatingPlayerText.setCharacterSize(40);
+	this->creatingPlayerText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - this->creatingPlayerText.getGlobalBounds().width),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - this->creatingPlayerText.getGlobalBounds().height / 2));
+	this->creatingPlayerText.setStyle(sf::Text::Style::Underlined);
 }
 
 Game::~Game()
 {
 	delete this->renderWindow;
 }
-

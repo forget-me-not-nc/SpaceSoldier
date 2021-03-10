@@ -1,6 +1,3 @@
-#include <ctime>
-#include <thread>
-
 #include "Game.h"
 
 int main()
@@ -29,6 +26,13 @@ int main()
 			case GameStates::GAME_OVER:
 			{
 				if (!game.noRedraw) game.gameOver(false, false);
+
+				break;
+			}
+
+			case GameStates::CREATE_PLAYER:
+			{
+				game.createPlayer();
 
 				break;
 			}

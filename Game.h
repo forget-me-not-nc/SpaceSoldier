@@ -2,29 +2,13 @@
 
 #define _USE_MATH_DEFINES
 
-#include <vector>
-
+#include "Includes.h"
+#include "AdditionalMethods.h"
 #include "SpaceShip.h"
 #include "Asteroid.h"
 #include "Bullet.h"
 #include "GameStates.h"
-
-#include "SFML/System.hpp"
-#include "SFML/Window.hpp"
-
-using sf::RenderWindow;
-using sf::Window;
-using sf::Event;
-using sf::VideoMode;
-using sf::Mouse;
-using sf::Texture;
-using sf::RectangleShape;
-using sf::Font;
-using sf::Text;
-using sf::Vector2i;
-
-using std::cout;
-using std::endl;
+#include "Player.h"
 
 class Game
 {
@@ -46,9 +30,12 @@ private:
 	Text startGameText;
 	Text exitGameText;
 	Text gameOverText;
+	Text creatingPlayerText;
 
 	int rotation;
 	int totalPoints;
+
+	Player player;
 
 	//bullets vector
 	vector<Bullet> bullets;
@@ -82,8 +69,6 @@ private:
 	void deleteAsteroids();
 
 	void collisionCheck();
-	bool bulletAndAsteroidIntersect(const Sprite &asteroid, const CircleShape &bullet);
-	bool shipAndAsteroidIntersect(const Sprite &asteroid);
 
 	void loadTextures();
 
@@ -91,9 +76,6 @@ private:
 	void updatePoints();
 
 	void restartGame();
-
-	//check for Mouse pos accordint to navigation text
-	bool isMouseInTextRegion(Vector2i mousePos, Text &text);
 
 public:
 	
@@ -107,6 +89,8 @@ public:
 	//public func
 	void displayStartMenu(bool startGameHover, bool exitGameHover);
 	void gameOver(bool gameOverHover, bool returnHover);
+	void createPlayer();
+
 	void update();
 	void render();
 	bool isRunning();

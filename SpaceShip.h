@@ -1,14 +1,6 @@
 #pragma once
 
-#define _USE_MATH_DEFINES
-
-#include "SFML/Graphics.hpp"
-
-#include <cmath>
-#include <iostream>
-
-using sf::Vector2f;
-using sf::Sprite;
+#include "Includes.h"
 
 class SpaceShip
 {
@@ -16,7 +8,7 @@ private:
 
 	//private variables
 	Vector2f speed;
-	int health = 0;
+	int health;
 
 	//private func
 

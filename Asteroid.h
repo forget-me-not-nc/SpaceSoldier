@@ -1,16 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
-
-#include "SFML/Graphics.hpp"
-
-using sf::Sprite;
-using sf::Texture;
-using sf::Vector2f;
-
-using std::string;
-using std::vector;
+#include "Includes.h"
 
 struct Asteroid
 {

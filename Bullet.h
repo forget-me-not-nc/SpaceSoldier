@@ -1,10 +1,6 @@
 #pragma once
 
-#include "SFML/Graphics.hpp"
-
-using sf::PrimitiveType;
-using sf::CircleShape;
-using sf::Vector2f;
+#include "Includes.h"
 
 struct Bullet
 {

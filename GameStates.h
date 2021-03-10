@@ -5,5 +5,5 @@ const enum class GameStates {
 	RENDER = 1,
 	GAME_OVER = 2,
 	PAUSE = 3,
-	ADD_PLAYER = 4
+	CREATE_PLAYER = 4
 };
