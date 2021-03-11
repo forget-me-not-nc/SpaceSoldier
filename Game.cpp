@@ -262,8 +262,12 @@ void Game::handleEvents()
 
 void Game::loadRating()
 {
+	std::fstream createFile;
+	createFile.open(this->currentDirectory + "\\data.bin", std::ios::out | std::ios::app);
+	createFile.close();
+
 	std::ifstream data;
-	data.open("..\\data.bin", std::ios::in | std::ios::binary);
+	data.open(this->currentDirectory + "\\data.bin", std::ios::in | std::ios::binary);
 
 	if (!data.is_open())
 	{
@@ -292,6 +296,8 @@ void Game::loadRating()
 		}
 
 		data.close();
+
+		this->ratingIsLoaded = true;
 	}
 }
 
@@ -345,7 +351,7 @@ void Game::updateRating()
 	string line = "";
 
 	std::ofstream data;
-	data.open("..\\data.bin", std::ios::out | std::ios::trunc | std::ios::binary);
+	data.open(this->currentDirectory + "\\data.bin", std::ios::out | std::ios::trunc | std::ios::binary);
 
 	if (!data.is_open())
 	{
@@ -498,7 +504,7 @@ void Game::drawAsteroids()
 
 void Game::addAsteroids()
 {
-	if (rand() % 101 == 50 && this->asteroids.size() <= 6)
+	if ((rand() % 101) % 50 == 0 && this->asteroids.size() <= 8)
 	{
 		Asteroid tempAsteroid = Asteroid(this->renderWindow);
 
@@ -581,7 +587,7 @@ void Game::collisionCheck()
 
 					this->player.setPoints(this->totalPoints);
 
-					this->updateRating();
+					if(this->ratingIsLoaded) this->updateRating();
 
 					this->gameState = GameStates::GAME_OVER;
 				}
@@ -762,7 +768,7 @@ void Game::initTexts()
 void Game::loadTextures()
 {
 	//ship texture
-	if (!this->spriteTexture.loadFromFile("..\\Images\\Ship\\SpaceShip.png"))
+	if (!this->spriteTexture.loadFromFile(this->currentDirectory + "\\Images\\Ship\\SpaceShip.png"))
 	{
 		std::cout << "Failed to load Texture\n";
 
@@ -770,7 +776,7 @@ void Game::loadTextures()
 	}
 
 	//background image
-	if (!this->backgroundTexture.loadFromFile("..\\Images\\Background\\Background.jpg"))
+	if (!this->backgroundTexture.loadFromFile(this->currentDirectory + "\\Images\\Background\\Background.jpg"))
 	{
 		std::cout << "Failed to load background texture";
 	}
@@ -778,21 +784,21 @@ void Game::loadTextures()
 	//asteroids images
 	Texture tempTexture;
 
-	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid1.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Asteroid\\Asteroid1.png"))
 	{
 		std::cout << "Failed to load asteroid_1 texture";
 	}
 
 	this->asteroidTextures.push_back(Texture(tempTexture));
 
-	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid2.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Asteroid\\Asteroid2.png"))
 	{
 		std::cout << "Failed to load asteroid_2 texture";
 	}
 
 	this->asteroidTextures.push_back(Texture(tempTexture));
 
-	if (!tempTexture.loadFromFile("..\\Images\\Asteroid\\Asteroid3.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Asteroid\\Asteroid3.png"))
 	{
 		std::cout << "Failed to load asteroid_3 texture";
 	}
@@ -801,35 +807,35 @@ void Game::loadTextures()
 
 	//explosion images
 
-	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage0.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Explosion\\Stage0.png"))
 	{
 		std::cout << "Failed to load explosion 1 texture";
 	}
 
 	this->explosions.push_back(Texture(tempTexture));
 
-	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage1.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Explosion\\Stage1.png"))
 	{
 		std::cout << "Failed to load explosion 1 texture";
 	}
 
 	this->explosions.push_back(Texture(tempTexture));
 
-	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage2.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Explosion\\Stage2.png"))
 	{
 		std::cout << "Failed to load explosion 2 texture";
 	}
 
 	this->explosions.push_back(Texture(tempTexture));
 
-	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage3.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Explosion\\Stage3.png"))
 	{
 		std::cout << "Failed to load explosion 3 texture";
 	}
 
 	this->explosions.push_back(Texture(tempTexture));
 
-	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\Stage4.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Explosion\\Stage4.png"))
 	{
 		std::cout << "Failed to load explosion 4 texture";
 	}
@@ -837,7 +843,7 @@ void Game::loadTextures()
 	this->explosions.push_back(Texture(tempTexture));
 
 	//bullets explosion will be last texture in vector
-	if (!tempTexture.loadFromFile("..\\Images\\Explosion\\BulletsHit.png"))
+	if (!tempTexture.loadFromFile(this->currentDirectory + "\\Images\\Explosion\\BulletsHit.png"))
 	{
 		std::cout << "Failed to load explosion bullets explosion texture";
 	}
@@ -896,6 +902,7 @@ void Game::restartGame()
 	this->totalPoints = 0;
 
 	this->noRedraw = false;
+	this->ratingIsUpdated = false;
 
 	//set first game state
 	this->gameState = GameStates::CREATE_PLAYER;
@@ -914,6 +921,7 @@ void Game::restartGame()
 
 void Game::gameOver(bool gameOverHover, bool returnHover)
 {
+
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
@@ -950,7 +958,14 @@ void Game::gameOver(bool gameOverHover, bool returnHover)
 		this->renderWindow->draw(borders);
 	}
 
-	this->showRating();
+	if (!this->ratingIsUpdated)
+	{
+		if (this->ratingIsLoaded) this->updateRating();
+
+		this->ratingIsUpdated = true;
+	}
+	
+	if (this->ratingIsLoaded) this->showRating();
 
 	this->renderWindow->display();
 }
@@ -1076,6 +1091,15 @@ bool Game::isRunning()
 
 Game::Game()
 {
+	//get current direcory
+	char dir[MAX_PATH];
+
+	memset(dir, 0, MAX_PATH);
+
+	GetCurrentDirectoryA(MAX_PATH, dir);
+
+	this->currentDirectory = dir;
+
 	//load rating
 	this->loadRating();
 
@@ -1111,12 +1135,13 @@ Game::Game()
 	this->nickname = "";
 
 	this->noRedraw = false;
+	this->ratingIsUpdated = false;
 
 	//set first game state
 	this->gameState = GameStates::CREATE_PLAYER;
 
 	//load font
-	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");
+	this->textFont.loadFromFile(this->currentDirectory + "\\Font\\Hello Jones Free Trial.ttf");
 	
 	//set navigation texts
 	this->initTexts();

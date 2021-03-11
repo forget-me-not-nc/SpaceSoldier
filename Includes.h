@@ -15,6 +15,8 @@
 #include "SFML/Window.hpp"
 #include "SFML/Graphics.hpp"
 
+#include <Windows.h>
+
 using sf::PrimitiveType;
 using sf::RenderWindow;
 using sf::Event;

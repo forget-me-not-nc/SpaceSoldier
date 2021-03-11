@@ -15,6 +15,8 @@ class Game
 private:
 
 	//private variables
+	string currentDirectory; //for proper resources loading
+
 	RenderWindow* renderWindow;
 	VideoMode videoMode;
 
@@ -49,6 +51,7 @@ private:
 	int totalPoints;
 
 	bool ratingIsLoaded;
+	bool ratingIsUpdated;
 
 	//bullets vector
 	vector<Bullet> bullets;
