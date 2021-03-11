@@ -43,6 +43,7 @@ private:
 	Text creatingPlayerText;
 	Text playersName;
 	Text leaderboard;
+	Text hintText;
 
 	int rotation;
 	int totalPoints;
@@ -72,12 +73,12 @@ private:
 	void handleEvents();
 
 	void initTexts();
+	void changeHint();
 
 	void loadRating();
 	void updateRating();
 	void showRating();
 
-	void validateSpeed();
 	void validatePosition();
 
 	void moveBullets();
@@ -96,17 +97,14 @@ private:
 
 	void updateHpBar();
 	void updatePoints();
-
+	
 	void restartGame();
 
 public:
 	
 	//public variables
 	bool noRedraw;
-	//game state
 	GameStates gameState;
-
-	//accessors
 
 	//public func
 	void displayStartMenu(bool startGameHover, bool exitGameHover);

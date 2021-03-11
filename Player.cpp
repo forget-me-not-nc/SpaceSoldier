@@ -1,6 +1,9 @@
 #include "Player.h"
 
+/////////////////
 //accessors
+/////////////////
+
 void Player::setName(String name)
 {
 	this->name = name;
@@ -21,7 +24,10 @@ int Player::getPoints()
 	return this->points;
 }
 
-//operators
+/////////////////
+//operators overloading
+/////////////////
+
 bool operator==(const Player& p1, const Player& p2)
 {
 	return (p1.name.toAnsiString()._Equal(p2.name.toAnsiString()));
@@ -40,7 +46,10 @@ Player& Player::operator=(const Player& player)
 	return *this;
 }
 
+/////////////////
 //constr & destr
+/////////////////
+
 Player::Player(string name, int points)
 {
 	this->name = name;

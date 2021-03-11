@@ -1,5 +1,9 @@
 #pragma once
 
+/////////////////
+//Game states enum
+/////////////////
+
 const enum class GameStates {
 	MAIN_MENU = 0,
 	RENDER = 1,

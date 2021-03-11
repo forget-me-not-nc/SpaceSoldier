@@ -1,6 +1,8 @@
 #include "Bullet.h"
 
+/////////////////
 //Constr & Destr
+/////////////////
 
 Bullet::Bullet(Vector2f startPos, float rotation)
 {
@@ -10,8 +12,8 @@ Bullet::Bullet(Vector2f startPos, float rotation)
 	this->bullet.setFillColor(sf::Color::Red);
 	this->bullet.setOrigin(this->bullet.getRadius(), this->bullet.getRadius());
 
-	this->speed = Vector2f(7.5f, 7.5f);
-	this->damage = rand() % 20 + 10;
+	this->speed = Vector2f(10.f, 10.f);
+	this->damage = rand() % 30 + 30;
 	this->angle = rotation;
 	this->isDestoyed = false;
 }

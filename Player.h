@@ -5,18 +5,21 @@
 class Player
 {
 private:
+
+	//private variables
 	String name;
 	int points = 0;
 
 public:
-	//accessors
+
+	//accessors (getters & setters)
 	void setName(String name);
 	void setPoints(int points);
 
 	String getName();
 	int getPoints();
 
-	//operators
+	//operators overloading
 	friend bool operator==(const Player& p1, const Player& p2);
 	friend bool operator!=(const Player& p1, const Player& p2);
 	Player& operator=(const Player& player);

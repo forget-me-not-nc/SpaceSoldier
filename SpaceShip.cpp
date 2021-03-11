@@ -1,10 +1,8 @@
 #include "SpaceShip.h"
 
-//private func
-
-//public func
-
+/////////////////
 //getters & setters
+/////////////////
 
 void SpaceShip::setSpeed(Vector2f speed)
 {
@@ -26,7 +24,9 @@ int SpaceShip::getHealth()
 	return this->health;
 }
 
+/////////////////
 //constr & destr
+/////////////////
 
 SpaceShip::SpaceShip(const int windowWidth, const int windowHeight) 
 {

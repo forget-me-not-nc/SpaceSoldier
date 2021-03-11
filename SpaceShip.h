@@ -10,8 +10,6 @@ private:
 	Vector2f speed;
 	int health = 0;
 
-	//private func
-
 public:
 
 	//public variables
@@ -22,7 +20,6 @@ public:
 	Vector2f getSpeed();
 	void setHealth(int health);
 	int getHealth();
-	//public func
 
 	//constr & destr
 	SpaceShip() = default;

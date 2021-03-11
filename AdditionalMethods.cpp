@@ -50,9 +50,9 @@ string binToString(string& line)
 	string result = "";	
 	string set = "";
 
-	for (int i = 0; i < line.length();)
+	for (unsigned int i = 0; i < line.length();)
 	{
-		for (int j = i; j < i + 8; j++)
+		for (unsigned int j = i; j < i + 8; j++)
 		{
 			set += line[j];
 		}

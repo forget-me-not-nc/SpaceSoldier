@@ -73,6 +73,8 @@ void Game::handleEvents()
 						if (isMouseInTextRegion(mousePos, this->startGameText))
 						{
 							this->gameState = GameStates::RENDER;
+
+							this->changeHint();
 						}
 						//exit game click
 						else if (isMouseInTextRegion(mousePos, this->exitGameText))
@@ -124,6 +126,10 @@ void Game::handleEvents()
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 				{
 					this->gameState = GameStates::PAUSE;
+
+					//display pause hint;
+					this->renderWindow->draw(this->hintText);
+					this->renderWindow->display();
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
 				{
@@ -134,16 +140,16 @@ void Game::handleEvents()
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
 				{
-					this->spaceShip.body.rotate(-3);
-					this->rotation -= 3;
+					this->spaceShip.body.rotate(-4);
+					this->rotation -= 4;
 					this->rotation = this->rotation % 360;
 					
 					//cout << "Current rotation: " << this->rotation << endl;
 				}
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
 				{
-					this->spaceShip.body.rotate(3);
-					this->rotation += 3;
+					this->spaceShip.body.rotate(4);
+					this->rotation += 4;
 					this->rotation = this->rotation % 360;
 					
 					//cout << "Current rotation: " << this->rotation << endl;
@@ -227,6 +233,8 @@ void Game::handleEvents()
 								this->player.setName(this->nickname);
 
 								this->gameState = GameStates::MAIN_MENU;
+
+								this->changeHint();
 							}
 						}
 						else if(this->event.text.unicode != 9 && this->event.text.unicode != 32) //if not Tab and Space
@@ -384,6 +392,10 @@ void Game::showRating()
 	this->renderWindow->draw(leaderboard);
 }
 
+/////////////////
+//position validating
+/////////////////
+
 void Game::validatePosition()
 {
 	if (this->spaceShip.body.getPosition().x <= (0 - this->spaceShip.body.getOrigin().x / 2))
@@ -406,12 +418,10 @@ void Game::validatePosition()
 	}
 }
 
-void Game::validateSpeed()
-{
-
-}
-
+/////////////////
 //bulets logic
+/////////////////
+
 void Game::moveBullets()
 {
 	if (!this->bullets.empty())
@@ -456,7 +466,10 @@ void Game::deleteBullets()
 	}
 }
 
+/////////////////
 //asteroid logic
+/////////////////
+
 void Game::moveAsteroids()
 {
 	if (!this->asteroids.empty())
@@ -481,6 +494,19 @@ void Game::drawAsteroids()
 	}
 
 	this->drawDestroyedAsteroids();
+}
+
+void Game::addAsteroids()
+{
+	if (rand() % 101 == 50 && this->asteroids.size() <= 6)
+	{
+		Asteroid tempAsteroid = Asteroid(this->renderWindow);
+
+		tempAsteroid.meteorite.setTexture(this->asteroidTextures[rand() % this->asteroidTextures.size()]);
+		tempAsteroid.meteorite.setOrigin(static_cast<float>(tempAsteroid.meteorite.getTexture()->getSize().x / 2),
+			static_cast<float>(tempAsteroid.meteorite.getTexture()->getSize().y / 2));
+		this->asteroids.push_back(tempAsteroid);
+	}
 }
 
 void Game::drawDestroyedAsteroids()
@@ -522,7 +548,10 @@ void Game::deleteAsteroids()
 	}
 }
 
+/////////////////
 //collision
+/////////////////
+
 void Game::collisionCheck()
 {
 	//ship part
@@ -601,7 +630,56 @@ void Game::collisionCheck()
 	}
 }
 
-//initialize texts
+/////////////////
+//change hint according to state
+/////////////////
+
+void Game::changeHint()
+{
+	switch (this->gameState)
+	{
+		case GameStates::CREATE_PLAYER:
+		{
+			this->hintText.setString(String("--- 1 <-> 12 nickname length\n--- Press 'Enter' to continue"));
+			this->hintText.setCharacterSize(18);
+			this->hintText.setFillColor(sf::Color(255, 255, 255, 230));
+			this->hintText.setPosition(
+				Vector2f(this->creatingPlayerText.getGlobalBounds().left + this->creatingPlayerText.getGlobalBounds().width,
+						 this->creatingPlayerText.getGlobalBounds().top + this->creatingPlayerText.getGlobalBounds().height + 20));
+
+			break;
+		}
+
+		case GameStates::MAIN_MENU:
+		{
+			this->hintText.setString(String("Player: " + this->nickname));
+			this->hintText.setCharacterSize(30);
+			this->hintText.setFillColor(sf::Color::Green);
+			this->hintText.setPosition(20.f, 20.f);
+
+			break;
+		}
+
+		case GameStates::RENDER:
+		{
+			this->hintText.setString(String("--------PAUSE--------\nPress 'Enter' to continue"));
+			this->hintText.setCharacterSize(40);
+			this->hintText.setFillColor(sf::Color::White);
+			this->hintText.setPosition(
+				static_cast<float>(this->renderWindow->getSize().x / 2 - this->hintText.getGlobalBounds().width / 2.f),
+				static_cast<float>(this->renderWindow->getSize().y / 2 - this->hintText.getGlobalBounds().height / 2.f));
+
+			break;
+		}
+
+		default: break;
+	}
+}
+
+/////////////////
+//init texts
+/////////////////
+
 void Game::initTexts()
 {
 	//start game text
@@ -667,9 +745,20 @@ void Game::initTexts()
 	this->leaderboard.setFillColor(sf::Color(38, 111, 255));
 	this->leaderboard.setPosition(20.f, 20.f);
 
+	//init first state hint
+	this->hintText.setString(String("--- 1 <-> 12 nickname length\n--- Press 'Enter' to continue"));
+	this->hintText.setFont(this->textFont);
+	this->hintText.setCharacterSize(18);
+	this->hintText.setFillColor(sf::Color(255, 255, 255, 230));
+	this->hintText.setPosition(
+		Vector2f(this->creatingPlayerText.getGlobalBounds().left + this->creatingPlayerText.getGlobalBounds().width,
+				 this->creatingPlayerText.getGlobalBounds().top + this->creatingPlayerText.getGlobalBounds().height + 20));
 }
 
+/////////////////
 //load textures
+/////////////////
+
 void Game::loadTextures()
 {
 	//ship texture
@@ -756,6 +845,10 @@ void Game::loadTextures()
 	this->explosions.push_back(Texture(tempTexture));
 }
 
+/////////////////
+//updating HUD
+/////////////////
+
 void Game::updateHpBar()
 {
 	this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15.f));
@@ -785,18 +878,9 @@ void Game::updatePoints()
 	this->renderWindow->draw(points);
 }
 
-void Game::addAsteroids()
-{
-	if (rand() % 101 == 50 && this->asteroids.size() <= 6)
-	{
-		Asteroid tempAsteroid = Asteroid(this->renderWindow);
-
-		tempAsteroid.meteorite.setTexture(this->asteroidTextures[rand() % this->asteroidTextures.size()]);
-		tempAsteroid.meteorite.setOrigin(static_cast<float>(tempAsteroid.meteorite.getTexture()->getSize().x / 2),
-										 static_cast<float>(tempAsteroid.meteorite.getTexture()->getSize().y / 2));
-		this->asteroids.push_back(tempAsteroid);
-	}
-}
+/////////////////
+//updating game states 
+/////////////////
 
 void Game::restartGame()
 {
@@ -815,6 +899,8 @@ void Game::restartGame()
 
 	//set first game state
 	this->gameState = GameStates::CREATE_PLAYER;
+
+	this->changeHint();
 
 	//clear entiti vectors 
 	this->destroyedAsteroids.clear();
@@ -877,6 +963,7 @@ void Game::displayStartMenu(bool startGameHover, bool exitGameHover)
 	//draw texts
 	this->renderWindow->draw(this->startGameText);
 	this->renderWindow->draw(this->exitGameText);
+	this->renderWindow->draw(this->hintText);
 
 	if (startGameHover)
 	{
@@ -921,9 +1008,14 @@ void Game::createPlayer()
 	this->renderWindow->draw(this->creatingPlayerText);
 	this->renderWindow->draw(this->inputRect);
 	this->renderWindow->draw(this->playersName);
+	this->renderWindow->draw(this->hintText);
 
 	this->renderWindow->display();
 }
+
+/////////////////
+//main update loop
+/////////////////
 
 void Game::update()
 {
@@ -932,7 +1024,10 @@ void Game::update()
 	if (this->gameState == GameStates::RENDER) this->addAsteroids();
 }
 
+/////////////////
 //main render loop
+/////////////////
+
 void Game::render()
 {
 	if (this->gameState == GameStates::RENDER)
@@ -965,6 +1060,10 @@ void Game::render()
 		this->renderWindow->display();
 	}
 }
+
+/////////////////
+//return true if window is still running
+/////////////////
 
 bool Game::isRunning()
 {
