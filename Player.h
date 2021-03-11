@@ -10,7 +10,7 @@ private:
 
 public:
 	//accessors
-	void setName(String Name);
+	void setName(String name);
 	void setPoints(int points);
 
 	String getName();
@@ -19,7 +19,7 @@ public:
 	//operators
 	friend bool operator==(const Player& p1, const Player& p2);
 	friend bool operator!=(const Player& p1, const Player& p2);
-	Player operator=(const Player& player);
+	Player& operator=(const Player& player);
 
 	//constr & destr
 	Player() = default;

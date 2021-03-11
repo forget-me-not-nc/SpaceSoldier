@@ -30,3 +30,39 @@ extern bool shipAndAsteroidIntersect(const Sprite& asteroid, const Sprite& space
 
 	return sqrt(dX * dX + dY * dY) <= (spriteRadius + shipRadius);
 }
+
+string stringToBin(string& line)
+{
+	string result = "";
+
+	for (string::iterator iter = line.begin(); iter != line.end();)
+	{
+		result += std::bitset<8>(*iter).to_string();
+
+		++iter;
+	}
+
+	return result;
+}
+
+string binToString(string& line)
+{
+	string result = "";	
+	string set = "";
+
+	for (int i = 0; i < line.length();)
+	{
+		for (int j = i; j < i + 8; j++)
+		{
+			set += line[j];
+		}
+
+		i += 8;
+
+		result += static_cast<char>(std::bitset<8>(set).to_ulong());
+
+		set = "";
+	}
+
+	return result;
+}

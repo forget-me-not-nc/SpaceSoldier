@@ -9,6 +9,7 @@
 #include <string>
 #include <cmath>
 #include <fstream>
+#include <bitset>
 
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"

@@ -167,7 +167,6 @@ void Game::handleEvents()
 						{
 							this->gameOver(true, false);
 
-
 							this->noRedraw = true;
 						}
 						//click on "Game over text"
@@ -232,7 +231,7 @@ void Game::handleEvents()
 						}
 						else if(this->event.text.unicode != 9 && this->event.text.unicode != 32) //if not Tab and Space
 						{
-							if(this->nickname.getSize() < static_cast<size_t>(12)) this->nickname += this->event.text.unicode;
+							if(this->nickname.getSize() < 12) this->nickname += this->event.text.unicode;
 						}
 
 						break;
@@ -256,7 +255,7 @@ void Game::handleEvents()
 void Game::loadRating()
 {
 	std::ifstream data;
-	data.open("..\\data.dat");
+	data.open("..\\data.bin", std::ios::in | std::ios::binary);
 
 	if (!data.is_open())
 	{
@@ -276,6 +275,8 @@ void Game::loadRating()
 		{
 			line = info;
 			
+			line = binToString(line);
+
 			tempPlayer.setName(line.substr(0, line.find_last_of(':')));
 			tempPlayer.setPoints(atoi(line.substr(line.find_last_of(':') + 1).c_str()));
 
@@ -313,7 +314,7 @@ void Game::updateRating()
 
 	while (step > 0)
 	{
-		for (int i = step; i < this->rating.size(); i++)
+		for (unsigned int i = step; i < this->rating.size(); i++)
 		{
 			tempPlayer = this->rating[i];
 
@@ -336,7 +337,7 @@ void Game::updateRating()
 	string line = "";
 
 	std::ofstream data;
-	data.open("..\\data.dat", std::ios_base::trunc);
+	data.open("..\\data.bin", std::ios::out | std::ios::trunc | std::ios::binary);
 
 	if (!data.is_open())
 	{
@@ -349,9 +350,12 @@ void Game::updateRating()
 			line = iter->getName().toAnsiString();
 			line += ":";
 			line += std::to_string(iter->getPoints());
+
+			line = stringToBin(line);
 			line += '\n';
 
-			data << line;
+			data.write(line.c_str(), line.size());
+			data.flush();
 
 			line = "";
 
@@ -363,7 +367,21 @@ void Game::updateRating()
 
 void Game::showRating()
 {
+	String board = "Top Player`s: \n";
+	
+	for (unsigned int iter = 0; iter < this->rating.size(); iter++)
+	{
+		board += std::to_string(iter + 1);
+		board += ". ";
+		board += this->rating[iter].getName();
+		board += " ---> ";
+		board += std::to_string(this->rating[iter].getPoints());
+		board += "\n";
+	}
 
+	this->leaderboard.setString(board);
+
+	this->renderWindow->draw(leaderboard);
 }
 
 void Game::validatePosition()
@@ -534,6 +552,8 @@ void Game::collisionCheck()
 
 					this->player.setPoints(this->totalPoints);
 
+					this->updateRating();
+
 					this->gameState = GameStates::GAME_OVER;
 				}
 				else
@@ -639,6 +659,14 @@ void Game::initTexts()
 		static_cast<float>(this->creatingPlayerText.getGlobalBounds().left + this->creatingPlayerText.getGlobalBounds().width + 20),
 		static_cast<float>(this->creatingPlayerText.getGlobalBounds().top + 5)
 	);
+
+	//create text to display leaderboard
+	this->leaderboard.setString(String(""));
+	this->leaderboard.setFont(this->textFont);
+	this->leaderboard.setCharacterSize(25);
+	this->leaderboard.setFillColor(sf::Color(38, 111, 255));
+	this->leaderboard.setPosition(20.f, 20.f);
+
 }
 
 //load textures
@@ -835,6 +863,8 @@ void Game::gameOver(bool gameOverHover, bool returnHover)
 
 		this->renderWindow->draw(borders);
 	}
+
+	this->showRating();
 
 	this->renderWindow->display();
 }

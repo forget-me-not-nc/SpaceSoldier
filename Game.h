@@ -42,6 +42,7 @@ private:
 	Text gameOverText;
 	Text creatingPlayerText;
 	Text playersName;
+	Text leaderboard;
 
 	int rotation;
 	int totalPoints;
