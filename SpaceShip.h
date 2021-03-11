@@ -8,7 +8,7 @@ private:
 
 	//private variables
 	Vector2f speed;
-	int health;
+	int health = 0;
 
 	//private func
 

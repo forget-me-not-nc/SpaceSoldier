@@ -15,15 +15,25 @@ class Game
 private:
 
 	//private variables
-	SpaceShip spaceShip;
-	VideoMode videoMode;
-	Event event;
-	Texture spriteTexture;
 	RenderWindow* renderWindow;
+	VideoMode videoMode;
+
+	SpaceShip spaceShip;
+	Player player;
+
+	Event event;
+
+	Texture spriteTexture;
 	Texture backgroundTexture;
+
 	Sprite background;
+	
 	RectangleShape hpBarRect;
+	RectangleShape inputRect;
+
 	Font textFont;
+
+	String nickname;
 
 	//navigation
 	Text returnToMainMenuText;
@@ -31,14 +41,18 @@ private:
 	Text exitGameText;
 	Text gameOverText;
 	Text creatingPlayerText;
+	Text playersName;
 
 	int rotation;
 	int totalPoints;
 
-	Player player;
+	bool ratingIsLoaded;
 
 	//bullets vector
 	vector<Bullet> bullets;
+
+	//vector for rating
+	vector<Player> rating;
 
 	//Asteroids vector
 	vector<Asteroid> asteroids;
@@ -55,6 +69,13 @@ private:
 	//private func
 	void initWindow();
 	void handleEvents();
+
+	void initTexts();
+
+	void loadRating();
+	void updateRating();
+	void showRating();
+
 	void validateSpeed();
 	void validatePosition();
 
@@ -84,7 +105,7 @@ public:
 	//game state
 	GameStates gameState;
 
-	//accessorss
+	//accessors
 
 	//public func
 	void displayStartMenu(bool startGameHover, bool exitGameHover);

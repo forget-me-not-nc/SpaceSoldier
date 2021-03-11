@@ -213,6 +213,33 @@ void Game::handleEvents()
 
 			case GameStates::CREATE_PLAYER:
 			{
+				switch (this->event.type)
+				{
+					case sf::Event::TextEntered:
+					{
+						if (this->event.text.unicode == 8)//if BackSpace
+						{
+							if (this->nickname.getSize() > static_cast<size_t>(0)) this->nickname.erase(this->nickname.getSize() - 1, 1);
+						}
+						else if (this->event.text.unicode == 13)
+						{
+							if (this->nickname.getSize() > 0)
+							{
+								this->player.setName(this->nickname);
+
+								this->gameState = GameStates::MAIN_MENU;
+							}
+						}
+						else if(this->event.text.unicode != 9 && this->event.text.unicode != 32) //if not Tab and Space
+						{
+							if(this->nickname.getSize() < static_cast<size_t>(12)) this->nickname += this->event.text.unicode;
+						}
+
+						break;
+					}
+
+					default: break;
+				}
 
 				break;
 			}
@@ -220,6 +247,123 @@ void Game::handleEvents()
 			default: break;
 		}
 	}	
+}
+
+/////////////////
+//rating handling
+/////////////////
+
+void Game::loadRating()
+{
+	std::ifstream data;
+	data.open("..\\data.dat");
+
+	if (!data.is_open())
+	{
+		cout << "Failed to load rating.." << endl;
+
+		this->ratingIsLoaded = false;
+	}
+	else
+	{
+		char info[255 + 1];
+
+		string line;
+
+		Player tempPlayer;
+
+		while (data.getline(info, 255, '\n'))
+		{
+			line = info;
+			
+			tempPlayer.setName(line.substr(0, line.find_last_of(':')));
+			tempPlayer.setPoints(atoi(line.substr(line.find_last_of(':') + 1).c_str()));
+
+			this->rating.push_back(Player(tempPlayer));
+		}
+
+		data.close();
+	}
+}
+
+void Game::updateRating()
+{
+	bool isInserted = false;
+
+	for (vector<Player>::iterator iter = this->rating.begin(); iter != this->rating.end();)
+	{
+		if (*iter == this->player)
+		{
+			if(iter->getPoints() < this->player.getPoints()) iter->setPoints(this->player.getPoints());
+
+			isInserted = true;
+
+			break;
+		}
+
+		++iter;
+	}
+
+	if(!isInserted) this->rating.push_back(Player(this->player));
+
+	//sort vector
+	Player tempPlayer;
+
+	int step = this->rating.size() / 2;
+
+	while (step > 0)
+	{
+		for (int i = step; i < this->rating.size(); i++)
+		{
+			tempPlayer = this->rating[i];
+
+			int j;
+
+			for (j = i; j >= step && this->rating[j - step].getPoints() < tempPlayer.getPoints(); j -= step)
+			{
+				this->rating[j] = this->rating[j - step];
+			}
+
+			this->rating[j] = tempPlayer;
+		}
+
+		step /= 2;
+	}
+
+	if (this->rating.size() == 16) this->rating.pop_back();
+
+	//rewrite rating
+	string line = "";
+
+	std::ofstream data;
+	data.open("..\\data.dat", std::ios_base::trunc);
+
+	if (!data.is_open())
+	{
+		cout << "Failed to rewrite rating" << endl;
+	}
+	else
+	{
+		for (vector<Player>::iterator iter = this->rating.begin(); iter != this->rating.end(); )
+		{
+			line = iter->getName().toAnsiString();
+			line += ":";
+			line += std::to_string(iter->getPoints());
+			line += '\n';
+
+			data << line;
+
+			line = "";
+
+			++iter;
+		}
+	}
+
+}
+
+void Game::showRating()
+{
+
 }
 
 void Game::validatePosition()
@@ -268,7 +412,7 @@ void Game::drawBullets()
 
 	if (!this->bullets.empty())
 	{
-		for(Bullet object : this->bullets)
+		for (Bullet object : this->bullets)
 		{
 			this->renderWindow->draw(object.bullet);
 		}
@@ -388,6 +532,8 @@ void Game::collisionCheck()
 				{
 					std::cout << "Game over..." << std::endl;
 
+					this->player.setPoints(this->totalPoints);
+
 					this->gameState = GameStates::GAME_OVER;
 				}
 				else
@@ -433,6 +579,66 @@ void Game::collisionCheck()
 			++bIter;
 		}
 	}
+}
+
+//initialize texts
+void Game::initTexts()
+{
+	//start game text
+	this->startGameText.setFont(this->textFont);
+	this->startGameText.setString(String("Start Game"));
+	this->startGameText.setCharacterSize(50);
+	this->startGameText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - startGameText.getGlobalBounds().width / 2.f),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - startGameText.getGlobalBounds().height / 2.f - 100.f)
+	);
+
+	//exit game text
+	this->exitGameText.setFont(this->textFont);
+	this->exitGameText.setString(String("Exit Game"));
+	this->exitGameText.setCharacterSize(35);
+	this->exitGameText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - exitGameText.getGlobalBounds().width / 2.f),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - exitGameText.getGlobalBounds().height / 2.f + 100.f)
+	);
+
+	//return to menu text
+	this->returnToMainMenuText.setFont(this->textFont);
+	this->returnToMainMenuText.setString(String("Return"));
+	this->returnToMainMenuText.setCharacterSize(40);
+	this->returnToMainMenuText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x - exitGameText.getGlobalBounds().width - 30.f),
+		static_cast<float>(this->renderWindow->getSize().y - exitGameText.getGlobalBounds().height - 50.f)
+	);
+
+	//game over text
+	this->gameOverText.setString(String("GAME OVER"));
+	this->gameOverText.setFont(this->textFont);
+	this->gameOverText.setCharacterSize(60);
+	this->gameOverText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - this->gameOverText.getGlobalBounds().width / 2.f),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - this->gameOverText.getGlobalBounds().height / 2.f)
+	);
+
+	//creating player text
+	this->creatingPlayerText.setString(String("Enter Players Nickname: "));
+	this->creatingPlayerText.setFont(this->textFont);
+	this->creatingPlayerText.setCharacterSize(40);
+	this->creatingPlayerText.setPosition(
+		static_cast<float>(this->renderWindow->getSize().x / 2 - this->creatingPlayerText.getGlobalBounds().width),
+		static_cast<float>(this->renderWindow->getSize().y / 2 - this->creatingPlayerText.getGlobalBounds().height / 2.f)
+	);
+	this->creatingPlayerText.setStyle(sf::Text::Style::Underlined);
+
+	//creating text to show user input
+	this->playersName.setString(this->nickname);
+	this->playersName.setFont(this->textFont);
+	this->playersName.setCharacterSize(30);
+	this->playersName.setFillColor(sf::Color::Red);
+	this->playersName.setPosition(
+		static_cast<float>(this->creatingPlayerText.getGlobalBounds().left + this->creatingPlayerText.getGlobalBounds().width + 20),
+		static_cast<float>(this->creatingPlayerText.getGlobalBounds().top + 5)
+	);
 }
 
 //load textures
@@ -580,7 +786,7 @@ void Game::restartGame()
 	this->noRedraw = false;
 
 	//set first game state
-	this->gameState = GameStates::MAIN_MENU;
+	this->gameState = GameStates::CREATE_PLAYER;
 
 	//clear entiti vectors 
 	this->destroyedAsteroids.clear();
@@ -680,7 +886,11 @@ void Game::createPlayer()
 	this->renderWindow->clear(sf::Color::Black);
 	this->renderWindow->draw(this->background);
 
+	this->playersName.setString(this->nickname);
+
 	this->renderWindow->draw(this->creatingPlayerText);
+	this->renderWindow->draw(this->inputRect);
+	this->renderWindow->draw(this->playersName);
 
 	this->renderWindow->display();
 }
@@ -737,6 +947,9 @@ bool Game::isRunning()
 
 Game::Game()
 {
+	//load rating
+	this->loadRating();
+
 	//init window
 	this->initWindow();
 
@@ -748,71 +961,48 @@ Game::Game()
 
 	//ship settings
 	this->spaceShip.body.setTexture(this->spriteTexture);
-	this->spaceShip.body.setOrigin(Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2), static_cast<float>(this->spriteTexture.getSize().y / 2)));
+	this->spaceShip.body.setOrigin(
+		Vector2f(static_cast<float>(this->spriteTexture.getSize().x / 2.f), 
+			     static_cast<float>(this->spriteTexture.getSize().y / 2.f))
+	);
 	this->spaceShip.body.setRotation(90);
 
 	//background texture
 	this->background.setTexture(this->backgroundTexture);
 
 	//hp bar settings
-	this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15));
+	this->hpBarRect.setSize(Vector2f(static_cast<float>(this->spaceShip.getHealth()), 15.f));
 	this->hpBarRect.setFillColor(sf::Color::Green);
-	this->hpBarRect.setPosition(static_cast<float>(this->renderWindow->getSize().x - 250), 20.f);
+	this->hpBarRect.setPosition(static_cast<float>(this->renderWindow->getSize().x - 250.f), 20.f);
 
 	//start variables
 	this->rotation = 0;
 	this->totalPoints = 0;
 
+	this->nickname = "";
+
 	this->noRedraw = false;
 
 	//set first game state
-	this->gameState = GameStates::MAIN_MENU;
+	this->gameState = GameStates::CREATE_PLAYER;
 
 	//load font
 	this->textFont.loadFromFile("..\\Font\\Hello Jones Free Trial.ttf");
-
-	//set navigation text
-
-	//start game text
-	this->startGameText.setFont(this->textFont);
-	this->startGameText.setString(sf::String("Start Game"));
-	this->startGameText.setCharacterSize(50);
-	this->startGameText.setPosition(
-		static_cast<float>(this->renderWindow->getSize().x / 2 - startGameText.getGlobalBounds().width / 2),
-		static_cast<float>(this->renderWindow->getSize().y / 2 - startGameText.getGlobalBounds().height / 2 - 100));
-
-	//exit game text
-	this->exitGameText.setFont(this->textFont);
-	this->exitGameText.setString(sf::String("Exit Game"));
-	this->exitGameText.setCharacterSize(35);
-	this->exitGameText.setPosition(
-		static_cast<float>(this->renderWindow->getSize().x / 2 - exitGameText.getGlobalBounds().width / 2),
-		static_cast<float>(this->renderWindow->getSize().y / 2 - exitGameText.getGlobalBounds().height / 2 + 100));
-
-	//return to menu text
-	this->returnToMainMenuText.setFont(this->textFont);
-	this->returnToMainMenuText.setString(sf::String("Return"));
-	this->returnToMainMenuText.setCharacterSize(40);
-	this->returnToMainMenuText.setPosition(
-		static_cast<float>(this->renderWindow->getSize().x - exitGameText.getGlobalBounds().width - 30),
-		static_cast<float>(this->renderWindow->getSize().y - exitGameText.getGlobalBounds().height - 50));
-
-	//game over text
-	this->gameOverText.setString(sf::String("GAME OVER"));
-	this->gameOverText.setFont(this->textFont);
-	this->gameOverText.setCharacterSize(60);
-	this->gameOverText.setPosition(
-		static_cast<float>(this->renderWindow->getSize().x / 2 - this->gameOverText.getGlobalBounds().width / 2),
-		static_cast<float>(this->renderWindow->getSize().y / 2 - this->gameOverText.getGlobalBounds().height / 2));
 	
-	//creating player text
-	this->creatingPlayerText.setString(sf::String("Enter Players Nickname: "));
-	this->creatingPlayerText.setFont(this->textFont);
-	this->creatingPlayerText.setCharacterSize(40);
-	this->creatingPlayerText.setPosition(
-		static_cast<float>(this->renderWindow->getSize().x / 2 - this->creatingPlayerText.getGlobalBounds().width),
-		static_cast<float>(this->renderWindow->getSize().y / 2 - this->creatingPlayerText.getGlobalBounds().height / 2));
-	this->creatingPlayerText.setStyle(sf::Text::Style::Underlined);
+	//set navigation texts
+	this->initTexts();
+
+	//init input rect
+	this->inputRect.setSize(
+		Vector2f(this->creatingPlayerText.getGlobalBounds().width / 1.25f,
+				 this->creatingPlayerText.getGlobalBounds().height)
+	);
+	this->inputRect.setFillColor(sf::Color::Black);
+	this->inputRect.setOutlineThickness(2.f);
+	this->inputRect.setPosition(
+		Vector2f(this->creatingPlayerText.getGlobalBounds().left + this->creatingPlayerText.getGlobalBounds().width + 10,
+				 this->creatingPlayerText.getGlobalBounds().top)
+	);
 }
 
 Game::~Game()

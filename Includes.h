@@ -8,6 +8,7 @@
 #include <thread>
 #include <string>
 #include <cmath>
+#include <fstream>
 
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
@@ -26,6 +27,7 @@ using sf::Vector2i;
 using sf::Vector2f;
 using sf::Sprite;
 using sf::CircleShape;
+using sf::String;
 
 using std::cout;
 using std::endl;
